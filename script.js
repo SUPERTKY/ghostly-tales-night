@@ -40,3 +40,20 @@ let fadeInterval = setInterval(() => {
     location.href = "menu.html";
   });
 });
+// 🔐 暗証チェック
+document.getElementById("submitPin").addEventListener("click", () => {
+  const input = document.getElementById("pinInput").value;
+
+  db.ref("pin").once("value").then(snapshot => {
+    const correctPin = snapshot.val();
+    if (input === correctPin) {
+      // ✅ 正解：ボタンを有効化、フォーム非表示
+      document.getElementById("lockArea").style.display = "none";
+      playButton.classList.add("enabled");
+    } else {
+      // ❌ 不正解
+      document.getElementById("error").style.display = "block";
+    }
+  });
+});
+
