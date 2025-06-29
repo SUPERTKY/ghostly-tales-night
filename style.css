@@ -44,11 +44,12 @@ html, body {
   width: 100%;
   height: 100%;
   background-color: black;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 5s ease; /* ← ここを変更：1.5秒でゆるやかにフェード */
+  opacity: 1; /* ← 最初は真っ暗（ロック中） */
+  pointer-events: auto;
+  transition: opacity 1.5s ease;
   z-index: 999;
 }
+
 #menuBackground {
   width: 100%;
   height: 100%;
@@ -57,18 +58,6 @@ html, body {
   position: fixed;
   top: 0;
   left: 0;
-}
-#fadeOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: black;
-  opacity: 0; /* ← 遷移前は 1 にしておく */
-  pointer-events: none;
-  transition: opacity 1.5s ease; /* フェード時間 */
-  z-index: 999;
 }
 #menuButtons {
   position: absolute;
@@ -92,21 +81,18 @@ html, body {
 .menuButton:hover {
   transform: scale(1.05);
 }
-#fadeOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: black;
-  opacity: 1; /* ← 最初は真っ暗 */
-  pointer-events: auto;
-  transition: opacity 1.5s ease;
-  z-index: 999;
-}
 .disabled {
   pointer-events: none;
   opacity: 0.5;
   cursor: default;
 }
+#lockArea {
+  position: absolute;
+  z-index: 1001;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
 
