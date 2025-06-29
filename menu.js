@@ -1,8 +1,21 @@
 window.addEventListener("DOMContentLoaded", () => {
   const fadeOverlay = document.getElementById("fadeOverlay");
 
-  // 0.1秒後に黒フェードイン（ちらつき防止）
+  // フェードイン
   setTimeout(() => {
     fadeOverlay.style.opacity = "0";
   }, 100);
+
+  // 各ボタンのクリック処理（例）
+  document.getElementById("btn1").addEventListener("click", () => {
+    alert("ボタン1が押されました");
+  });
+
+  document.getElementById("btn2").addEventListener("click", () => {
+    alert("ボタン2が押されました");
+  });
+
+  document.getElementById("btn3").addEventListener("click", () => {
+    alert("ボタン3が押されました");
+  });
 });
