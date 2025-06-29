@@ -2,50 +2,13 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>音声認識テスト</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; }
-    #result { margin-top: 20px; font-size: 1.2em; border: 1px solid #ccc; padding: 10px; }
-    button { font-size: 1.2em; padding: 10px 20px; }
-  </style>
+  <title>幽話夜会</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>🎤 音声認識テスト</h1>
-  <button onclick="startRecognition()">マイクで話す</button>
-  <div id="result">ここに認識された文字が表示されます</div>
-
-  <script>
-    let recognition;
-
-    function startRecognition() {
-      if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
-        alert('このブラウザは音声認識に対応していません。Chrome推奨です。');
-        return;
-      }
-
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognition = new SpeechRecognition();
-      recognition.lang = 'ja-JP'; // 日本語
-
-      recognition.onstart = () => {
-        document.getElementById("result").innerText = "認識中... 話してください。";
-      };
-
-      recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        document.getElementById("result").innerText = "認識結果: " + transcript;
-      };
-
-      recognition.onerror = (event) => {
-        document.getElementById("result").innerText = "エラー: " + event.error;
-      };
-
-      recognition.onend = () => {
-        // 認識終了時の処理
-      };
-
-      recognition.start();
-    }
-  </script>
+  <div id="background">
+    <img src="assets/button_play.png" id="playButton" alt="遊ぶ">
+  </div>
+  <script src="script.js"></script>
 </body>
 </html>
