@@ -20,11 +20,12 @@ html, body {
 
 #playButton {
   position: absolute;
-  top: 60%; /* ここを50%から60%にして、下に */
+  top: 60%; /* 中央よりやや下 */
   left: 50%;
   transform: translate(-50%, -50%);
   width: 200px;
   height: auto;
   cursor: pointer;
-  background: transparent; /* 念のため背景透過指定 */
+  background-color: transparent; /* ボタンの背景透過 */
+  border: none;                  /* 不要な枠を消す */
 }
