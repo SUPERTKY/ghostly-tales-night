@@ -37,3 +37,15 @@ html, body {
   cursor: pointer;
   transition: opacity 0.3s ease;
 }
+#fadeOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1s ease;
+  z-index: 999;
+}
