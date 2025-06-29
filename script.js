@@ -21,17 +21,19 @@ playButton.addEventListener("click", () => {
   fadeOverlay.style.opacity = "1";
 
   // 🎵 BGMをゆっくり（例：0.8秒）でフェードアウト
-  let fadeSteps = 10;
-  let fadeInterval = setInterval(() => {
-    if (fadeSteps > 0) {
-      bgm.volume -= 1.0 / fadeSteps;
-      fadeSteps--;
-    } else {
-      clearInterval(fadeInterval);
-      bgm.volume = 0;
-      bgm.pause();
-    }
-  }, 80); // 80ms × 10 = 約0.8秒
+let fadeSteps = 10;
+let volumeStep = bgm.volume / fadeSteps;
+
+let fadeInterval = setInterval(() => {
+  if (fadeSteps > 0) {
+    bgm.volume = Math.max(0, bgm.volume - volumeStep); // ← 0以下にならないように制限
+    fadeSteps--;
+  } else {
+    clearInterval(fadeInterval);
+    bgm.pause();
+  }
+}, 80); // 合計約0.8秒
+
 
   // 🔁 効果音が終わったら遷移
   clickSound.addEventListener("ended", () => {
