@@ -35,6 +35,6 @@ playButton.addEventListener("click", () => {
 
   // 🔁 効果音が終わったら遷移
   clickSound.addEventListener("ended", () => {
-    location.href = "game.html";
+    location.href = "menu.html";
   });
 });
