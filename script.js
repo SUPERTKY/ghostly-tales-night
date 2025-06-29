@@ -7,13 +7,13 @@ document.body.addEventListener("click", () => {
   const bgm = document.getElementById("bgm");
   const playButton = document.getElementById("playButton");
 
-  // BGM再生（失敗しても無視）
+  // BGM再生
   bgm.play().catch((e) => console.error("BGM再生失敗:", e));
 
-  // ボタンを有効化
+  // ボタン有効化
   playButton.classList.add("enabled");
 
-  // ボタンクリック可能に
+  // ボタンクリック処理
   playButton.addEventListener("click", () => {
     alert("ゲームスタート！");
     // location.href = "game.html";
