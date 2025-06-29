@@ -56,8 +56,20 @@ document.getElementById("submitPin").addEventListener("click", () => {
     }
   });
 });
-// 暗証ワードが正解だったら
-document.getElementById("fadeOverlay").style.opacity = "0"; // ← 黒カバーを消す
-playButton.classList.remove("disabled");                    // ← ボタンを使えるように
-document.getElementById("lockArea").style.display = "none"; // ← 入力欄を消す
+document.getElementById("submitPin").addEventListener("click", () => {
+  const input = document.getElementById("pinInput").value;
+
+  db.ref("pin").once("value").then(snapshot => {
+    const correctPin = snapshot.val();
+    if (input === correctPin) {
+      // ✅ 正解だったときだけこれらを実行！
+      document.getElementById("fadeOverlay").style.opacity = "0"; // 黒フェード消す
+      playButton.classList.remove("disabled");                    // ボタン有効化
+      document.getElementById("lockArea").style.display = "none"; // 入力欄非表示
+    } else {
+      document.getElementById("error").style.display = "block";   // エラー表示
+    }
+  });
+});
+
 
