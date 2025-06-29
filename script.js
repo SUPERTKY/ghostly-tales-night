@@ -61,6 +61,7 @@ document.getElementById("submitPin").addEventListener("click", () => {
       playButton.classList.add("enabled");
       document.getElementById("lockArea").style.display = "none";
       document.getElementById("error").style.display = "none";
+      fadeOverlay.style.pointerEvents = "none";  // クリックも貫通させる
 }
  else {
       // ❌ 不正解：エラー表示
