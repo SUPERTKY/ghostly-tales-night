@@ -56,4 +56,8 @@ document.getElementById("submitPin").addEventListener("click", () => {
     }
   });
 });
+// 暗証ワードが正解だったら
+document.getElementById("fadeOverlay").style.opacity = "0"; // ← 黒カバーを消す
+playButton.classList.remove("disabled");                    // ← ボタンを使えるように
+document.getElementById("lockArea").style.display = "none"; // ← 入力欄を消す
 
