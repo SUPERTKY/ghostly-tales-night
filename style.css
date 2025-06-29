@@ -21,15 +21,17 @@ html, body {
 
 #playButton {
   position: absolute;
-  top: 80%; /* ★中央よりさらに下へ */
+  top: 80%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 300px;  /* ★大きめに調整 */
+  width: 300px;
   height: auto;
   cursor: default;
   opacity: 0.5;
   pointer-events: none;
+  z-index: 1000; /* ✅追加：fadeOverlay より前に出す */
 }
+
 
 #playButton.enabled {
   pointer-events: auto;
