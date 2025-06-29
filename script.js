@@ -57,7 +57,7 @@ document.getElementById("submitPin").addEventListener("click", () => {
   // ✅ 正解：UI解除とボタン有効化
       // ✅ 正解：UIを解除
       document.getElementById("fadeOverlay").style.opacity = "0";
-      playButton.classList.remove("disabled");Add commentMore actions
+      playButton.classList.remove("disabled");
       playButton.classList.add("enabled");
       document.getElementById("lockArea").style.display = "none";
       document.getElementById("error").style.display = "none";
