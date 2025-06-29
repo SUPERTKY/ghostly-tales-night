@@ -64,7 +64,8 @@ document.getElementById("submitPin").addEventListener("click", () => {
     if (input === correctPin) {
       // ✅ 正解だったときだけこれらを実行！
       document.getElementById("fadeOverlay").style.opacity = "0"; // 黒フェード消す
-      playButton.classList.remove("disabled");                    // ボタン有効化
+      playButton.classList.remove("disabled");
+       playButton.classList.add("enabled");// ボタン有効化
       document.getElementById("lockArea").style.display = "none"; // 入力欄非表示
     } else {
       document.getElementById("error").style.display = "block";   // エラー表示
