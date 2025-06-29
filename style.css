@@ -46,6 +46,6 @@ html, body {
   background-color: black;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 1.5s ease; /* ← ここを変更：1.5秒でゆるやかにフェード */
+  transition: opacity 5s ease; /* ← ここを変更：1.5秒でゆるやかにフェード */
   z-index: 999;
 }
