@@ -17,7 +17,7 @@ playButton.addEventListener("click", () => {
   fadeOverlay.style.opacity = "1";
 
   // BGM高速フェード（0.3秒）
-  let fadeSteps = 6;
+  let fadeSteps = 10;
   let fadeInterval = setInterval(() => {
     if (fadeSteps > 0) {
       bgm.volume -= 1.0 / 6;
