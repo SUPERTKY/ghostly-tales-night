@@ -5,6 +5,9 @@ window.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
     fadeOverlay.style.opacity = "0";
   }, 100);
+  fadeOverlay.addEventListener("transitionend", () => {
+  fadeOverlay.style.pointerEvents = "none";
+});
 
   // 各ボタンのクリック処理（例）
   document.getElementById("btn1").addEventListener("click", () => {
