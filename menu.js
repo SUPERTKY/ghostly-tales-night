@@ -1,18 +1,27 @@
 window.addEventListener("DOMContentLoaded", () => {
   const fadeOverlay = document.getElementById("fadeOverlay");
 
-  // フェードイン
+  // 最初のフェードイン（黒→透明）
   setTimeout(() => {
     fadeOverlay.style.opacity = "0";
   }, 100);
+
   fadeOverlay.addEventListener("transitionend", () => {
-  fadeOverlay.style.pointerEvents = "none";
-});
+    fadeOverlay.style.pointerEvents = "none";
+  });
 
-  // 各ボタンのクリック処理（例）
+  // 共通：フェードアウトしてから遷移
+  function fadeAndGo(url) {
+    fadeOverlay.style.pointerEvents = "auto";
+    fadeOverlay.style.opacity = "1";
+    fadeOverlay.addEventListener("transitionend", () => {
+      window.location.href = url;
+    }, { once: true });
+  }
+
+  // 各ボタンに遷移をセット
   document.getElementById("btn1").addEventListener("click", () => {
-    window.location.href = "anaumekaidan.html";
-
+    fadeAndGo("anaumekaidan.html");
   });
 
   document.getElementById("btn2").addEventListener("click", () => {
