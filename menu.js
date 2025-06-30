@@ -11,7 +11,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // 各ボタンのクリック処理（例）
   document.getElementById("btn1").addEventListener("click", () => {
-    alert("ボタン1が押されました");
+    window.location.href = "anaumekaidan.html";
+
   });
 
   document.getElementById("btn2").addEventListener("click", () => {
