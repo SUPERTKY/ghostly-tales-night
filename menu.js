@@ -2,7 +2,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const fadeOverlay = document.getElementById("fadeOverlay");
   const clickSound = document.getElementById("clickSound");
 
-  // 初回フェードイン
+  // 最初のフェードイン
   setTimeout(() => {
     fadeOverlay.style.opacity = "0";
   }, 100);
@@ -11,23 +11,27 @@ window.addEventListener("DOMContentLoaded", () => {
     fadeOverlay.style.pointerEvents = "none";
   });
 
-  function fadeAndGo(url) {
-    clickSound.currentTime = 0; // 巻き戻し（連打対策）
-    clickSound.play();          // 効果音再生
-
+  function fadeWithSoundThenGo(url) {
+    // フェードアウト開始（黒くする）
     fadeOverlay.style.pointerEvents = "auto";
     fadeOverlay.style.opacity = "1";
 
-    fadeOverlay.addEventListener("transitionend", () => {
+    // 効果音を再生（即時）
+    clickSound.currentTime = 0;
+    clickSound.play();
+
+    // 効果音が終わったらページ遷移
+    clickSound.addEventListener("ended", () => {
       window.location.href = url;
     }, { once: true });
   }
 
-  // ボタンごとに処理を割り当て
+  // ボタン1だけページ移動
   document.getElementById("btn1").addEventListener("click", () => {
-    fadeAndGo("anaumekaidan.html");
+    fadeWithSoundThenGo("anaumekaidan.html");
   });
 
+  // 他のボタンは音だけ＆アラート
   document.getElementById("btn2").addEventListener("click", () => {
     clickSound.currentTime = 0;
     clickSound.play();
