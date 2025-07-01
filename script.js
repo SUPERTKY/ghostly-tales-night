@@ -53,22 +53,26 @@ document.getElementById("submitPin").addEventListener("click", () => {
 
   db.ref("pin").once("value").then(snapshot => {
     const correctPin = snapshot.val();
+
     if (input === correctPin) {
-  // ✅ 正解：UI解除とボタン有効化
-      // ✅ 正解：UIを解除
-      document.getElementById("fadeOverlay").style.opacity = "0";
-      playButton.classList.remove("disabled");
-      playButton.classList.add("enabled");
-      document.getElementById("lockArea").style.display = "none";
-      document.getElementById("error").style.display = "none";
-      fadeOverlay.style.pointerEvents = "none";  // クリックも貫通させる
-}
- else {
-      // ❌ 不正解：エラー表示
+      // 🔧 ここで定義！
+      const storedName = localStorage.getItem("playerName");
+
+      if (storedName) {
+        unlockUI();
+      } else {
+        document.getElementById("nameInputArea").style.display = "block";
+        document.getElementById("inputBlocker").style.display = "block";
+        document.getElementById("lockArea").style.display = "none";
+        document.getElementById("fadeOverlay").style.opacity = "0";
+        fadeOverlay.style.pointerEvents = "none";
+      }
+    } else {
       document.getElementById("error").style.display = "block";
     }
   });
 });
+
 // 名前未登録なら入力UIを表示（暗証番号正解時）
 if (!storedName) {
   document.getElementById("nameInputArea").style.display = "block";
