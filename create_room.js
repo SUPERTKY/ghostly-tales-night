@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getDatabase, ref, set, onValue, get, update } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
 
 const firebaseConfig = {
   apiKey: "AIzaSyB1hyrktLnx7lzW2jf4ZeIzTrBEY-IEgPo",
@@ -18,31 +17,60 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// 認証が完了した後にルーム作成処理をする
+const createBtn = document.getElementById("createRoomBtn");
+const roomInfo = document.getElementById("roomInfo");
+const playerList = document.getElementById("playerList");
+
+let currentRoomCode = null;
+let myUID = null;
+
+function generateRoomCode() {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
+function displayPlayers(players) {
+  playerList.innerHTML = "";
+  Object.values(players || {}).forEach((player, index) => {
+    const li = document.createElement("li");
+    li.textContent = `・プレイヤー${index + 1}（UID: ${player.uid.slice(0, 6)}...）`;
+    playerList.appendChild(li);
+  });
+}
+
+async function createRoomAndJoin(uid) {
+  const roomCode = generateRoomCode();
+  currentRoomCode = roomCode;
+  const roomRef = ref(db, `rooms/${roomCode}`);
+  const playerRef = ref(db, `rooms/${roomCode}/players/${uid}`);
+
+  const roomData = {
+    createdAt: Date.now(),
+    status: "waiting"
+  };
+
+  await set(roomRef, roomData);
+  await set(playerRef, { uid });
+
+  roomInfo.innerHTML = `ルーム番号：<strong>${roomCode}</strong><br>参加者一覧：`;
+  onValue(ref(db, `rooms/${roomCode}/players`), snapshot => {
+    const players = snapshot.val();
+    if (players && Object.keys(players).length > 6) {
+      alert("このルームは満員です！");
+      // 今後の処理を制御するならここで分岐可
+    } else {
+      displayPlayers(players);
+    }
+  });
+}
+
+// 認証してから処理開始
 onAuthStateChanged(auth, async user => {
   if (user) {
-    // 認証済 → ルーム作成
-    const roomCode = Math.floor(1000 + Math.random() * 9000).toString();
-    const roomRef = ref(db, `rooms/${roomCode}`);
-
-    const roomData = {
-      createdAt: Date.now(),
-      hostUid: user.uid,
-      status: "waiting"
-    };
-
-    try {
-      await set(roomRef, roomData);
-      window.location.href = `room.html?room=${roomCode}`;
-    } catch (e) {
-      alert("ルーム作成に失敗しました。");
-      console.error(e);
-    }
-  } else {
-    // 未ログインなら匿名ログインを試行
-    signInAnonymously(auth).catch(error => {
-      alert("認証に失敗しました。");
-      console.error(error);
+    myUID = user.uid;
+    createBtn.addEventListener("click", () => {
+      createRoomAndJoin(myUID);
     });
+  } else {
+    await signInAnonymously(auth);
   }
 });
