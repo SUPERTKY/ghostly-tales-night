@@ -50,25 +50,46 @@ function displayPlayers(players) {
   });
 }
 
-// 🏠 ルームを作って参加
 async function createRoomAndJoin(uid) {
-  const roomCode = generateRoomCode();
-  currentRoomCode = roomCode;
-
   const playerName = localStorage.getItem("playerName") || "名無し";
 
+  // ✅ 既にルーム作っているか確認（rooms内を走査）
+  const roomsSnapshot = await get(ref(db, "rooms"));
+  const rooms = roomsSnapshot.val();
+
+  const alreadyCreatedRoom = Object.entries(rooms || {}).find(([code, room]) => {
+    return room.host === uid;
+  });
+
+  if (alreadyCreatedRoom) {
+    alert("すでにルームを作成しています！");
+    return;
+  }
+
+  // ✅ 重複しないルーム番号を探す
+  let roomCode;
+  while (true) {
+    const codeCandidate = generateRoomCode();
+    const roomRef = ref(db, `rooms/${codeCandidate}`);
+    const exists = await get(roomRef);
+    if (!exists.exists()) {
+      roomCode = codeCandidate;
+      break;
+    }
+  }
+
+  currentRoomCode = roomCode;
   const roomRef = ref(db, `rooms/${roomCode}`);
   const playerRef = ref(db, `rooms/${roomCode}/players/${uid}`);
 
+  // ✅ ルーム情報にホストUIDを記録
   const roomData = {
     createdAt: Date.now(),
-    status: "waiting"
+    status: "waiting",
+    host: uid
   };
 
-  // ルーム作成
   await set(roomRef, roomData);
-
-  // 自分を参加者に追加（名前付き）
   await set(playerRef, {
     uid: uid,
     name: playerName
@@ -76,7 +97,6 @@ async function createRoomAndJoin(uid) {
 
   roomInfo.innerHTML = `ルーム番号：<strong>${roomCode}</strong><br>参加者一覧：`;
 
-  // リアルタイムに参加者リストを更新
   onValue(ref(db, `rooms/${roomCode}/players`), snapshot => {
     const players = snapshot.val();
     const playerCount = Object.keys(players || {}).length;
@@ -88,6 +108,7 @@ async function createRoomAndJoin(uid) {
     }
   });
 }
+
 
 // 🔐 認証完了後にボタンを有効化
 onAuthStateChanged(auth, async user => {
