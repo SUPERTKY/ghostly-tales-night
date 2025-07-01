@@ -4,7 +4,80 @@
   <meta charset="UTF-8">
   <title>次のページ</title>
 </head>
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getDatabase, ref, push, onValue, remove, set, onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyB1hyrktLnx7lzW2jf4ZeIzTrBEY-IEgPo",
+  authDomain: "horror-game-9b2d2.firebaseapp.com",
+  databaseURL: "https://horror-game-9b2d2-default-rtdb.asia-southeast1.firebasedatabase.app", // ✅新しい正しいURL
+  projectId: "horror-game-9b2d2",
+  storageBucket: "horror-game-9b2d2.firebasestorage.app",
+  messagingSenderId: "534762448588",
+  appId: "1:534762448588:web:e0a6a01cd14c7f1dce4469"
+  
+};
+
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
+  const statusText = document.getElementById("status");
+  const matchingRef = ref(db, "matchingQueue");
+
+  let myKey = null;
+  let matched = false;
+
+  // 自分の情報を追加
+  const myData = {
+    timestamp: Date.now()
+  };
+
+  const myRef = push(matchingRef, myData);
+  myKey = myRef.key;
+
+  // 切断時の処理（サーバーが自動削除）
+  onDisconnect(myRef).remove();
+
+  // マッチングロジック
+  onValue(matchingRef, async snapshot => {
+    const entries = snapshot.val();
+    if (!entries || matched) return;
+
+    const keys = Object.keys(entries);
+    if (keys.length >= 2) {
+      const partnerKey = keys.find(k => k !== myKey);
+      if (partnerKey) {
+        matched = true;
+        statusText.textContent = "マッチングしました！";
+
+        // 両方削除（片方が先に進まないように）
+        await remove(ref(db, `matchingQueue/${myKey}`));
+        await remove(ref(db, `matchingQueue/${partnerKey}`));
+
+        // 少し待ってから移動
+        setTimeout(() => {
+          window.location.href = "matchedpage.html"; // ←ここを遷移先に変更
+        }, 1000);
+      }
+    }
+  });
+
+  // ページ離脱時に index.html に戻す処理
+  const cleanup = () => {
+    if (!matched) {
+      remove(myRef).then(() => {
+        window.location.href = "index.html";
+      });
+    }
+  };
+
+  window.addEventListener("beforeunload", cleanup);
+  window.addEventListener("pagehide", cleanup);
+</script>
+
 <body>
-  <h1>ようこそ、次のページへ！</h1>
+
 </body>
 </html>
