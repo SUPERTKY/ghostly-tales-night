@@ -6,12 +6,37 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- 名前入力欄（最初は非表示） -->
-<div id="nameInputArea" style="display: none;">
+<!-- UIブロック用レイヤー -->
+<div id="inputBlocker" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  display: none;
+"></div>
+
+<!-- 名前入力UI（z-indexはinputBlockerの中でも表示されるように） -->
+<div id="nameInputArea" style="
+  display: none;
+  position: fixed;
+  z-index: 10000;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: black;
+  padding: 20px;
+  border: 2px solid white;
+  color: white;
+  text-align: center;
+">
   <p>あなたの名前を入力してください：</p>
   <input type="text" id="nameInput" />
+  <br><br>
   <button id="nameSubmit">決定</button>
 </div>
+
 
   <!-- 🔐 パスワード入力フォーム -->
 <div id="lockArea">
