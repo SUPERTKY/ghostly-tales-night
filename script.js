@@ -69,3 +69,23 @@ document.getElementById("submitPin").addEventListener("click", () => {
     }
   });
 });
+// 名前未登録なら入力UIを表示（暗証番号正解時）
+if (!storedName) {
+  document.getElementById("nameInputArea").style.display = "block";
+  document.getElementById("inputBlocker").style.display = "block"; // 🔒ブロック有効
+  document.getElementById("lockArea").style.display = "none";
+  document.getElementById("fadeOverlay").style.opacity = "0";
+  fadeOverlay.style.pointerEvents = "none";
+}
+document.getElementById("nameSubmit").addEventListener("click", () => {
+  const name = document.getElementById("nameInput").value.trim();
+
+  if (name.length > 0) {
+    localStorage.setItem("playerName", name);
+    document.getElementById("nameInputArea").style.display = "none";
+    document.getElementById("inputBlocker").style.display = "none"; // 🔓ブロック解除
+    unlockUI();
+  } else {
+    alert("名前を入力してください");
+  }
+});
