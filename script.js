@@ -48,6 +48,18 @@ playButton.addEventListener("click", () => {
 // -----------------------
 // 🔐 暗証番号チェック（Firebase）
 // -----------------------
+function unlockUI() {
+  const playButton = document.getElementById("playButton");
+  const fadeOverlay = document.getElementById("fadeOverlay");
+
+  playButton.classList.remove("disabled");
+  playButton.classList.add("enabled");
+  document.getElementById("lockArea").style.display = "none";
+  document.getElementById("error").style.display = "none";
+  fadeOverlay.style.opacity = "0";
+  fadeOverlay.style.pointerEvents = "none";
+}
+
 document.getElementById("submitPin").addEventListener("click", () => {
   const input = document.getElementById("pinInput").value;
 
@@ -74,13 +86,21 @@ document.getElementById("submitPin").addEventListener("click", () => {
 });
 
 // 名前未登録なら入力UIを表示（暗証番号正解時）
-if (!storedName) {
-  document.getElementById("nameInputArea").style.display = "block";
-  document.getElementById("inputBlocker").style.display = "block"; // 🔒ブロック有効
-  document.getElementById("lockArea").style.display = "none";
-  document.getElementById("fadeOverlay").style.opacity = "0";
-  fadeOverlay.style.pointerEvents = "none";
+if (input === correctPin) {
+  const storedName = localStorage.getItem("playerName"); // 🔧 ここで定義！
+
+  if (storedName) {
+    unlockUI(); // 名前があるならUI解除
+  } else {
+    // 名前未登録 → 入力欄を表示
+    document.getElementById("nameInputArea").style.display = "block";
+    document.getElementById("inputBlocker").style.display = "block";
+    document.getElementById("lockArea").style.display = "none";
+    document.getElementById("fadeOverlay").style.opacity = "0";
+    fadeOverlay.style.pointerEvents = "none";
+  }
 }
+
 document.getElementById("nameSubmit").addEventListener("click", () => {
   const name = document.getElementById("nameInput").value.trim();
 
