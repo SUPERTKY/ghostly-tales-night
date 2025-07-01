@@ -1,5 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyB1hyrktLnx7lzW2jf4ZeIzTrBEY-IEgPo",
@@ -12,36 +14,35 @@ const firebaseConfig = {
   
 };
 
-
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const auth = getAuth(app);
 
-// ルームコード生成関数
-function generateRoomCode() {
-  return Math.floor(1000 + Math.random() * 9000).toString();
-}
+// 認証が完了した後にルーム作成処理をする
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    // 認証済 → ルーム作成
+    const roomCode = Math.floor(1000 + Math.random() * 9000).toString();
+    const roomRef = ref(db, `rooms/${roomCode}`);
 
-// ボタンイベント
-document.getElementById("createRoomBtn").addEventListener("click", async () => {
-  const roomCode = generateRoomCode();
-  const roomRef = ref(db, `rooms/${roomCode}`);
+    const roomData = {
+      createdAt: Date.now(),
+      hostUid: user.uid,
+      status: "waiting"
+    };
 
-  const roomData = {
-    createdAt: Date.now(),
-    status: "waiting",
-    host: "host"
-  };
-
-  try {
-    await set(roomRef, roomData);
-    window.location.href = `room.html?room=${roomCode}`;
-  } catch (e) {
-    alert("ルーム作成に失敗しました。");
-    console.error(e);
+    try {
+      await set(roomRef, roomData);
+      window.location.href = `room.html?room=${roomCode}`;
+    } catch (e) {
+      alert("ルーム作成に失敗しました。");
+      console.error(e);
+    }
+  } else {
+    // 未ログインなら匿名ログインを試行
+    signInAnonymously(auth).catch(error => {
+      alert("認証に失敗しました。");
+      console.error(error);
+    });
   }
-});
-
-document.getElementById("joinRoomBtn").addEventListener("click", () => {
-  // 今は仮でindex.htmlに飛ばす
-  window.location.href = "join_room.html";
 });
