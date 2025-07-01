@@ -67,7 +67,6 @@ document.getElementById("submitPin").addEventListener("click", () => {
     const correctPin = snapshot.val();
 
     if (input === correctPin) {
-      // 🔧 ここで定義！
       const storedName = localStorage.getItem("playerName");
 
       if (storedName) {
