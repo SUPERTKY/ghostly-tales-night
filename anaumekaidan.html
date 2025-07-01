@@ -1,47 +1,33 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>マッチングページ</title>
+  <meta charset="UTF-8">
+  <title>マッチング</title>
   <style>
     body {
-      margin: 0;
       background-color: black;
+      color: white;
       display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
-
     .button-img {
-      width: 300px; /* お好みで調整 */
-      margin: 20px 0;
+      width: 300px;
+      margin: 20px;
       cursor: pointer;
-      transition: opacity 0.3s;
-    }
-
-    .button-img:hover {
-      opacity: 0.7;
     }
   </style>
 </head>
 <body>
 
-  <!-- ボタン画像 -->
-  <img src="assets/create_button.png" id="createBtn" class="button-img" alt="ルームを作る">
-  <img src="assets/join_button.png" id="joinBtn" class="button-img" alt="ルームに入る">
+  <!-- 画像ボタン -->
+  <img src="assets/create_button.png" id="createRoomBtn" class="button-img" alt="ルームを作る">
+  <img src="assets/join_button.png" id="joinRoomBtn" class="button-img" alt="ルームに入る">
 
-  <script>
-    document.getElementById("createBtn").addEventListener("click", () => {
-      window.location.href = "create_room.html"; // ルーム作成ページ
-    });
-
-    document.getElementById("joinBtn").addEventListener("click", () => {
-      window.location.href = "join_room.html"; // ルーム参加ページ
-    });
-  </script>
+  <!-- 外部JS -->
+  <script type="module" src="create_room.js"></script>
 
 </body>
 </html>
