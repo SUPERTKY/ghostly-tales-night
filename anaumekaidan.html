@@ -1,33 +1,42 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>マッチング</title>
   <style>
     body {
       background-color: black;
       color: white;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+      font-family: sans-serif;
+      text-align: center;
+      padding-top: 40px;
     }
+
     .button-img {
       width: 300px;
       margin: 20px;
       cursor: pointer;
     }
+
+    #roomInfo {
+      margin-top: 30px;
+      font-size: 1.2em;
+    }
+
+    ul#playerList {
+      list-style: none;
+      padding: 0;
+    }
   </style>
 </head>
 <body>
 
-  <!-- 画像ボタン -->
   <img src="assets/create_button.png" id="createRoomBtn" class="button-img" alt="ルームを作る">
   <img src="assets/join_button.png" id="joinRoomBtn" class="button-img" alt="ルームに入る">
 
-  <!-- 外部JS -->
-  <script type="module" src="create_room.js"></script>
+  <div id="roomInfo"></div>
+  <ul id="playerList"></ul>
 
+  <script type="module" src="anaumekaidan.js"></script>
 </body>
 </html>
