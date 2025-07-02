@@ -10,6 +10,15 @@ if (!window.appState) {
 
 const createBtn = document.getElementById("createRoomBtn");
 const joinBtn = document.getElementById("joinRoomBtn");
+const playerRef = ref(db, `rooms/${code}/players/${uid}`);
+await onDisconnect(playerRef).remove();  // 自分だけ削除
+// ルームが削除されたら index.html に戻す（参加者・主催者共通）
+onValue(ref(db, `rooms/${currentRoomCode}`), snapshot => {
+  if (!snapshot.exists()) {
+    alert("ホストがルームを解散しました");
+    window.location.href = "index.html"; // もしくはトップに戻す
+  }
+});
 
 function disableBothButtons() {
   createBtn.classList.add("disabled");
