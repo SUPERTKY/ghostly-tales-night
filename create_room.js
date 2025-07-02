@@ -194,3 +194,34 @@ onAuthStateChanged(auth, async user => {
     await signInAnonymously(auth);
   }
 });
+// グローバル状態フラグ
+window.appState = {
+  isJoining: false,
+  isCreating: false,
+  isEnteringCode: false
+};
+
+// joinボタンが押されたら
+document.getElementById("joinRoomBtn").addEventListener("click", () => {
+  if (window.appState.isCreating || window.appState.isJoining || window.appState.isEnteringCode) return;
+
+  window.appState.isEnteringCode = true;
+
+  document.getElementById("joinRoomUI").style.display = "block";
+  document.getElementById("createRoomBtn").disabled = true;
+  document.getElementById("joinRoomBtn").disabled = true;
+});
+
+// キャンセルしたとき
+document.getElementById("cancelJoin").addEventListener("click", () => {
+  window.appState.isEnteringCode = false;
+
+  document.getElementById("joinRoomUI").style.display = "none";
+
+  // ルーム作成・参加していないなら再有効化
+  if (!window.appState.isCreating && !window.appState.isJoining) {
+    document.getElementById("createRoomBtn").disabled = false;
+    document.getElementById("joinRoomBtn").disabled = false;
+  }
+});
+
