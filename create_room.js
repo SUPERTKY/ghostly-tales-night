@@ -201,16 +201,17 @@ window.appState = {
   isEnteringCode: false
 };
 
-// joinボタンが押されたら
-document.getElementById("joinRoomBtn").addEventListener("click", () => {
-  if (window.appState.isCreating || window.appState.isJoining || window.appState.isEnteringCode) return;
+document.getElementById("createRoomBtn").addEventListener("click", async () => {
+  if (window.appState.isJoining || window.appState.isCreating || window.appState.isEnteringCode) return;
 
-  window.appState.isEnteringCode = true;
+  window.appState.isCreating = true;
 
-  document.getElementById("joinRoomUI").style.display = "block";
   document.getElementById("createRoomBtn").disabled = true;
   document.getElementById("joinRoomBtn").disabled = true;
+
+  await createRoomAndJoin(myUID); // 既存の作成関数
 });
+
 
 // キャンセルしたとき
 document.getElementById("cancelJoin").addEventListener("click", () => {
