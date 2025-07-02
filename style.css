@@ -96,4 +96,8 @@ html, body {
   text-align: center;
 }
 
+.button-img.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
 
