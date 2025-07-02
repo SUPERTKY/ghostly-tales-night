@@ -34,10 +34,12 @@ document.getElementById("submitJoin").addEventListener("click", async () => {
   roomInfo.innerHTML = `ルーム番号：<strong>${code}</strong><br>参加者一覧：`;
   onValue(ref(db, `rooms/${code}/players`), snapshot => {
     displayPlayers(snapshot.val());
-  });
+// 参加成功時
+window.appState.isJoining = true;
+window.appState.isEnteringCode = false;
 
-  // UIをロック
-  document.getElementById("joinRoomBtn").disabled = true;
-  document.getElementById("createRoomBtn").disabled = true;
-  document.getElementById("joinRoomUI").style.display = "none";
+document.getElementById("joinRoomBtn").disabled = true;
+document.getElementById("createRoomBtn").disabled = true;
+document.getElementById("joinRoomUI").style.display = "none";
+
 });
