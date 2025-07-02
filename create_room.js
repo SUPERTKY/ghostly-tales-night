@@ -5,11 +5,13 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
-  getDatabase, ref, set, onValue, get
+  getDatabase, ref, set, onValue, get, onDisconnect  // ← ✅ ここに onDisconnect を追加
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
 import {
   getAuth, signInAnonymously, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 
 // Firebase初期化
 const firebaseConfig = {
