@@ -112,16 +112,7 @@ async function createRoomAndJoin(uid) {
   });
 }
 
-// ✅ 「ルームを作る」ボタン処理
-createBtn.addEventListener("click", async () => {
-  if (roomCreated || roomJoined) return;
 
-  roomCreated = true;
-  joinBtn.disabled = true;
-  createBtn.disabled = true;
-
-  await createRoomAndJoin(myUID);
-});
 
 // ✅ 「ルームに入る」ボタン → 入力欄表示
 joinBtn.addEventListener("click", () => {
