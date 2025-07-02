@@ -1,3 +1,13 @@
+// グローバル状態の初期化（最上部でやる）
+if (!window.appState) {
+  window.appState = {
+    isCreating: false,
+    isJoining: false,
+    isEnteringCode: false,
+    hasJoined: false
+  };
+}
+
 const createBtn = document.getElementById("createRoomBtn");
 const joinBtn = document.getElementById("joinRoomBtn");
 
