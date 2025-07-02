@@ -110,6 +110,13 @@ async function createRoomAndJoin(uid) {
 const hostRef = ref(db, `rooms/${roomCode}`);
 import { onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 await onDisconnect(hostRef).remove();  // 切断されたらルームごと削除
+// ルームが削除されたら index.html に戻す（参加者・主催者共通）
+onValue(ref(db, `rooms/${currentRoomCode}`), snapshot => {
+  if (!snapshot.exists()) {
+    alert("ホストがルームを解散しました");
+    window.location.href = "index.html"; // もしくはトップに戻す
+  }
+});
 
 }
 
