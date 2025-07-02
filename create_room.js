@@ -202,14 +202,22 @@ window.appState = {
 };
 
 document.getElementById("createRoomBtn").addEventListener("click", async () => {
+  // ✅ 状態確認と即ロック（非同期を待たない！）
   if (window.appState.isJoining || window.appState.isCreating || window.appState.isEnteringCode) return;
-
   window.appState.isCreating = true;
 
+  // ✅ UI即無効化
   document.getElementById("createRoomBtn").disabled = true;
   document.getElementById("joinRoomBtn").disabled = true;
 
-  await createRoomAndJoin(myUID); // 既存の作成関数
+  try {
+    await createRoomAndJoin(myUID);
+  } catch (e) {
+    console.error("ルーム作成失敗:", e);
+    window.appState.isCreating = false; // 作成失敗時は解除
+    document.getElementById("createRoomBtn").disabled = false;
+    document.getElementById("joinRoomBtn").disabled = false;
+  }
 });
 
 
