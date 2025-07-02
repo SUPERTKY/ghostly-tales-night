@@ -106,6 +106,11 @@ async function createRoomAndJoin(uid) {
 
   appState.hasCreated = true;
   appState.isCreating = false;
+  // 主催者の onDisconnect 処理
+const hostRef = ref(db, `rooms/${roomCode}`);
+import { onDisconnect } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+await onDisconnect(hostRef).remove();  // 切断されたらルームごと削除
+
 }
 
 async function joinRoom(code, uid) {
