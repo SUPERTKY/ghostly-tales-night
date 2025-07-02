@@ -2,22 +2,15 @@ const createBtn = document.getElementById("createRoomBtn");
 const joinBtn = document.getElementById("joinRoomBtn");
 
 function disableBothButtons() {
-  createBtn.disabled = true;
-  joinBtn.disabled = true;
-  createBtn.style.pointerEvents = "none";
-  joinBtn.style.pointerEvents = "none";
-  createBtn.style.opacity = "0.5";
-  joinBtn.style.opacity = "0.5";
+  createBtn.classList.add("disabled");
+  joinBtn.classList.add("disabled");
 }
 
 function enableBothButtons() {
-  createBtn.disabled = false;
-  joinBtn.disabled = false;
-  createBtn.style.pointerEvents = "auto";
-  joinBtn.style.pointerEvents = "auto";
-  createBtn.style.opacity = "1";
-  joinBtn.style.opacity = "1";
+  createBtn.classList.remove("disabled");
+  joinBtn.classList.remove("disabled");
 }
+
 
 // ✅ 「ルームに入る」ボタン → 入力欄表示 + ボタン無効化
 joinBtn.addEventListener("click", () => {
