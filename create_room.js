@@ -27,12 +27,21 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
+// 🎮 要素取得
 const createBtn = document.getElementById("createRoomBtn");
+const joinBtn = document.getElementById("joinRoomBtn");
+const submitJoin = document.getElementById("submitJoin");
+const cancelJoin = document.getElementById("cancelJoin");
+const joinInput = document.getElementById("joinRoomCode");
+const joinUI = document.getElementById("joinRoomUI");
+
 const roomInfo = document.getElementById("roomInfo");
 const playerList = document.getElementById("playerList");
 
 let currentRoomCode = null;
 let myUID = null;
+let roomCreated = false;
+let roomJoined = false;
 
 // 🔢 ランダムなルーム番号を作成
 function generateRoomCode() {
@@ -50,28 +59,24 @@ function displayPlayers(players) {
   });
 }
 
+// 🏠 ルームを作成して自分を参加させる
 async function createRoomAndJoin(uid) {
   const playerName = localStorage.getItem("playerName") || "名無し";
 
-  // ✅ 既にルーム作っているか確認（rooms内を走査）
+  // すでにルームを作っていないかチェック
   const roomsSnapshot = await get(ref(db, "rooms"));
   const rooms = roomsSnapshot.val();
-
-  const alreadyCreatedRoom = Object.entries(rooms || {}).find(([code, room]) => {
-    return room.host === uid;
-  });
-
+  const alreadyCreatedRoom = Object.entries(rooms || {}).find(([code, room]) => room.host === uid);
   if (alreadyCreatedRoom) {
     alert("すでにルームを作成しています！");
     return;
   }
 
-  // ✅ 重複しないルーム番号を探す
+  // 重複しないルーム番号を生成
   let roomCode;
   while (true) {
     const codeCandidate = generateRoomCode();
-    const roomRef = ref(db, `rooms/${codeCandidate}`);
-    const exists = await get(roomRef);
+    const exists = await get(ref(db, `rooms/${codeCandidate}`));
     if (!exists.exists()) {
       roomCode = codeCandidate;
       break;
@@ -82,14 +87,12 @@ async function createRoomAndJoin(uid) {
   const roomRef = ref(db, `rooms/${roomCode}`);
   const playerRef = ref(db, `rooms/${roomCode}/players/${uid}`);
 
-  // ✅ ルーム情報にホストUIDを記録
-  const roomData = {
+  await set(roomRef, {
     createdAt: Date.now(),
     status: "waiting",
     host: uid
-  };
+  });
 
-  await set(roomRef, roomData);
   await set(playerRef, {
     uid: uid,
     name: playerName
@@ -109,14 +112,84 @@ async function createRoomAndJoin(uid) {
   });
 }
 
+// ✅ 「ルームを作る」ボタン処理
+createBtn.addEventListener("click", async () => {
+  if (roomCreated || roomJoined) return;
 
-// 🔐 認証完了後にボタンを有効化
+  roomCreated = true;
+  joinBtn.disabled = true;
+  createBtn.disabled = true;
+
+  await createRoomAndJoin(myUID);
+});
+
+// ✅ 「ルームに入る」ボタン → 入力欄表示
+joinBtn.addEventListener("click", () => {
+  joinUI.style.display = "block";
+  joinBtn.disabled = true;
+  createBtn.disabled = true;
+});
+
+// ✅ 「キャンセル」ボタン → 入力欄非表示＆ボタン復帰
+cancelJoin.addEventListener("click", () => {
+  joinUI.style.display = "none";
+  joinInput.value = "";
+  if (!roomCreated && !roomJoined) {
+    joinBtn.disabled = false;
+    createBtn.disabled = false;
+  }
+});
+
+// ✅ 「参加」ボタン処理
+submitJoin.addEventListener("click", async () => {
+  if (roomCreated || roomJoined) return;
+
+  const code = joinInput.value.trim();
+  if (!code) {
+    alert("ルーム番号を入力してください");
+    return;
+  }
+
+  const roomRef = ref(db, `rooms/${code}`);
+  const snapshot = await get(roomRef);
+  if (!snapshot.exists()) {
+    alert("そのルームは存在しません");
+    return;
+  }
+
+  const playersRef = ref(db, `rooms/${code}/players`);
+  const playersSnap = await get(playersRef);
+  const players = playersSnap.val() || {};
+  const playerCount = Object.keys(players).length;
+
+  if (playerCount >= 6) {
+    alert("このルームは満員です！");
+    return;
+  }
+
+  // 名前付きで参加
+  await set(ref(db, `rooms/${code}/players/${myUID}`), {
+    uid: myUID,
+    name: localStorage.getItem("playerName") || "名無し"
+  });
+
+  roomInfo.innerHTML = `ルーム番号：<strong>${code}</strong><br>参加者一覧：`;
+  onValue(ref(db, `rooms/${code}/players`), snapshot => {
+    displayPlayers(snapshot.val());
+  });
+
+  roomJoined = true;
+  joinBtn.disabled = true;
+  createBtn.disabled = true;
+  joinUI.style.display = "none";
+});
+
+// ✅ Firebase 認証後に操作を許可
 onAuthStateChanged(auth, async user => {
   if (user) {
     myUID = user.uid;
-    createBtn.addEventListener("click", () => {
-      createRoomAndJoin(myUID);
-    });
+    createBtn.disabled = false;
+    joinBtn.disabled = false;
   } else {
     await signInAnonymously(auth);
   }
