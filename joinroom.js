@@ -1,3 +1,28 @@
+import {
+  getDatabase, ref, set, onValue, get, onDisconnect
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+import {
+  getAuth, signInAnonymously, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+// Firebase設定（※必要であれば共通設定を再定義）
+const firebaseConfig = {
+  apiKey: "AIzaSyB1hyrktLnx7lzW2jf4ZeIzTrBEY-IEgPo",
+  authDomain: "horror-game-9b2d2.firebaseapp.com",
+  databaseURL: "https://horror-game-9b2d2-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "horror-game-9b2d2",
+  storageBucket: "horror-game-9b2d2.appspot.com",
+  messagingSenderId: "534762448588",
+  appId: "1:534762448588:web:e0a6a01cd14c7f1dce4469"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+const auth = getAuth(app);
+
 // グローバル状態の初期化（最上部でやる）
 if (!window.appState) {
   window.appState = {
