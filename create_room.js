@@ -1,18 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getDatabase,
-  ref,
-  set,
-  onValue,
-  get
+  getDatabase, ref, set, onValue, get
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 import {
-  getAuth,
-  signInAnonymously,
-  onAuthStateChanged
+  getAuth, signInAnonymously, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// ✅ Firebase設定
+// Firebase初期化
 const firebaseConfig = {
   apiKey: "AIzaSyB1hyrktLnx7lzW2jf4ZeIzTrBEY-IEgPo",
   authDomain: "horror-game-9b2d2.firebaseapp.com",
@@ -27,28 +21,32 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// 🎮 要素取得
+// 要素取得
 const createBtn = document.getElementById("createRoomBtn");
 const joinBtn = document.getElementById("joinRoomBtn");
 const submitJoin = document.getElementById("submitJoin");
 const cancelJoin = document.getElementById("cancelJoin");
 const joinInput = document.getElementById("joinRoomCode");
 const joinUI = document.getElementById("joinRoomUI");
-
 const roomInfo = document.getElementById("roomInfo");
 const playerList = document.getElementById("playerList");
 
-let currentRoomCode = null;
+// 状態変数
 let myUID = null;
-let roomCreated = false;
-let roomJoined = false;
+let currentRoomCode = null;
 
-// 🔢 ランダムなルーム番号を作成
+// 状態管理
+const appState = {
+  isCreating: false,
+  isJoining: false,
+  hasJoined: false,
+  hasCreated: false
+};
+
 function generateRoomCode() {
   return Math.floor(1000 + Math.random() * 9000).toString();
 }
 
-// 👤 参加者一覧を表示（名前ベース）
 function displayPlayers(players) {
   playerList.innerHTML = "";
   Object.values(players || {}).forEach((player, index) => {
@@ -59,20 +57,24 @@ function displayPlayers(players) {
   });
 }
 
-// 🏠 ルームを作成して自分を参加させる
 async function createRoomAndJoin(uid) {
+  if (appState.hasCreated || appState.hasJoined || appState.isCreating || appState.isJoining) return;
+
+  appState.isCreating = true;
+  createBtn.disabled = true;
+  joinBtn.disabled = true;
+
   const playerName = localStorage.getItem("playerName") || "名無し";
 
-  // すでにルームを作っていないかチェック
   const roomsSnapshot = await get(ref(db, "rooms"));
   const rooms = roomsSnapshot.val();
-  const alreadyCreatedRoom = Object.entries(rooms || {}).find(([code, room]) => room.host === uid);
+  const alreadyCreatedRoom = Object.entries(rooms || {}).find(([_, room]) => room.host === uid);
   if (alreadyCreatedRoom) {
     alert("すでにルームを作成しています！");
+    appState.isCreating = false;
     return;
   }
 
-  // 重複しないルーム番号を生成
   let roomCode;
   while (true) {
     const codeCandidate = generateRoomCode();
@@ -84,149 +86,104 @@ async function createRoomAndJoin(uid) {
   }
 
   currentRoomCode = roomCode;
-  const roomRef = ref(db, `rooms/${roomCode}`);
-  const playerRef = ref(db, `rooms/${roomCode}/players/${uid}`);
 
-  await set(roomRef, {
+  await set(ref(db, `rooms/${roomCode}`), {
     createdAt: Date.now(),
     status: "waiting",
     host: uid
   });
 
-  await set(playerRef, {
-    uid: uid,
+  await set(ref(db, `rooms/${roomCode}/players/${uid}`), {
+    uid,
     name: playerName
   });
 
   roomInfo.innerHTML = `ルーム番号：<strong>${roomCode}</strong><br>参加者一覧：`;
 
   onValue(ref(db, `rooms/${roomCode}/players`), snapshot => {
-    const players = snapshot.val();
-    const playerCount = Object.keys(players || {}).length;
-
-    if (playerCount > 6) {
-      alert("このルームは満員です！");
-    } else {
-      displayPlayers(players);
-    }
+    displayPlayers(snapshot.val());
   });
-  // ✅ 作成完了後のフラグ設定とボタン制御
-roomCreated = true;
-joinBtn.disabled = true;
-createBtn.disabled = true;
 
+  appState.hasCreated = true;
+  appState.isCreating = false;
 }
 
+async function joinRoom(code, uid) {
+  if (appState.hasJoined || appState.hasCreated || appState.isCreating || appState.isJoining) return;
 
-
-// ✅ 「ルームに入る」ボタン → 入力欄表示
-joinBtn.addEventListener("click", () => {
-  joinUI.style.display = "block";
-  joinBtn.disabled = true;
-  createBtn.disabled = true;
-});
-
-// ✅ 「キャンセル」ボタン → 入力欄非表示＆ボタン復帰
-cancelJoin.addEventListener("click", () => {
-  joinUI.style.display = "none";
-  joinInput.value = "";
-  if (!roomCreated && !roomJoined) {
-    joinBtn.disabled = false;
-    createBtn.disabled = false;
-  }
-});
-
-// ✅ 「参加」ボタン処理
-submitJoin.addEventListener("click", async () => {
-  if (roomCreated || roomJoined) return;
-
-  const code = joinInput.value.trim();
-  if (!code) {
-    alert("ルーム番号を入力してください");
-    return;
-  }
+  appState.isJoining = true;
 
   const roomRef = ref(db, `rooms/${code}`);
   const snapshot = await get(roomRef);
   if (!snapshot.exists()) {
     alert("そのルームは存在しません");
+    appState.isJoining = false;
     return;
   }
 
-  const playersRef = ref(db, `rooms/${code}/players`);
-  const playersSnap = await get(playersRef);
+  const playersSnap = await get(ref(db, `rooms/${code}/players`));
   const players = playersSnap.val() || {};
-  const playerCount = Object.keys(players).length;
-
-  if (playerCount >= 6) {
+  if (Object.keys(players).length >= 6) {
     alert("このルームは満員です！");
+    appState.isJoining = false;
     return;
   }
 
-  // 名前付きで参加
-  await set(ref(db, `rooms/${code}/players/${myUID}`), {
-    uid: myUID,
+  await set(ref(db, `rooms/${code}/players/${uid}`), {
+    uid,
     name: localStorage.getItem("playerName") || "名無し"
   });
 
   roomInfo.innerHTML = `ルーム番号：<strong>${code}</strong><br>参加者一覧：`;
+
   onValue(ref(db, `rooms/${code}/players`), snapshot => {
     displayPlayers(snapshot.val());
   });
 
-  roomJoined = true;
-  joinBtn.disabled = true;
-  createBtn.disabled = true;
   joinUI.style.display = "none";
-});
+  appState.hasJoined = true;
+  appState.isJoining = false;
+}
 
-// ✅ Firebase 認証後に操作を許可
+// 認証とボタン制御
 onAuthStateChanged(auth, async user => {
   if (user) {
     myUID = user.uid;
-    createBtn.disabled = false;
-    joinBtn.disabled = false;
+    if (!appState.hasCreated && !appState.hasJoined) {
+      createBtn.disabled = false;
+      joinBtn.disabled = false;
+    }
   } else {
     await signInAnonymously(auth);
   }
 });
-// グローバル状態フラグ
-window.appState = {
-  isJoining: false,
-  isCreating: false,
-  isEnteringCode: false
-};
 
-document.getElementById("createRoomBtn").addEventListener("click", async () => {
-  // ✅ 状態確認と即ロック（非同期を待たない！）
-  if (window.appState.isJoining || window.appState.isCreating || window.appState.isEnteringCode) return;
-  window.appState.isCreating = true;
+// イベント設定
+createBtn.addEventListener("click", () => {
+  createRoomAndJoin(myUID);
+});
 
-  // ✅ UI即無効化
-  document.getElementById("createRoomBtn").disabled = true;
-  document.getElementById("joinRoomBtn").disabled = true;
+joinBtn.addEventListener("click", () => {
+  if (appState.hasCreated || appState.hasJoined) return;
+  joinUI.style.display = "block";
+  createBtn.disabled = true;
+  joinBtn.disabled = true;
+});
 
-  try {
-    await createRoomAndJoin(myUID);
-  } catch (e) {
-    console.error("ルーム作成失敗:", e);
-    window.appState.isCreating = false; // 作成失敗時は解除
-    document.getElementById("createRoomBtn").disabled = false;
-    document.getElementById("joinRoomBtn").disabled = false;
+cancelJoin.addEventListener("click", () => {
+  joinUI.style.display = "none";
+  joinInput.value = "";
+  if (!appState.hasCreated && !appState.hasJoined) {
+    createBtn.disabled = false;
+    joinBtn.disabled = false;
   }
 });
 
-
-// キャンセルしたとき
-document.getElementById("cancelJoin").addEventListener("click", () => {
-  window.appState.isEnteringCode = false;
-
-  document.getElementById("joinRoomUI").style.display = "none";
-
-  // ルーム作成・参加していないなら再有効化
-  if (!window.appState.isCreating && !window.appState.isJoining) {
-    document.getElementById("createRoomBtn").disabled = false;
-    document.getElementById("joinRoomBtn").disabled = false;
+submitJoin.addEventListener("click", () => {
+  const code = joinInput.value.trim();
+  if (!code) {
+    alert("ルーム番号を入力してください");
+    return;
   }
+  joinRoom(code, myUID);
 });
-
