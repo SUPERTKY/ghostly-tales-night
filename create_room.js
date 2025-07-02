@@ -110,6 +110,11 @@ async function createRoomAndJoin(uid) {
       displayPlayers(players);
     }
   });
+  // ✅ 作成完了後のフラグ設定とボタン制御
+roomCreated = true;
+joinBtn.disabled = true;
+createBtn.disabled = true;
+
 }
 
 
