@@ -8,7 +8,7 @@ import {
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
-// Firebase設定（※必要であれば共通設定を再定義）
+// Firebase設定
 const firebaseConfig = {
   apiKey: "AIzaSyB1hyrktLnx7lzW2jf4ZeIzTrBEY-IEgPo",
   authDomain: "horror-game-9b2d2.firebaseapp.com",
@@ -23,7 +23,9 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// グローバル状態の初期化（最上部でやる）
+let myUID = null;
+
+// グローバル状態
 if (!window.appState) {
   window.appState = {
     isCreating: false,
@@ -33,17 +35,15 @@ if (!window.appState) {
   };
 }
 
+// UI要素
 const createBtn = document.getElementById("createRoomBtn");
 const joinBtn = document.getElementById("joinRoomBtn");
-const playerRef = ref(db, `rooms/${code}/players/${uid}`);
-await onDisconnect(playerRef).remove();  // 自分だけ削除
-// ルームが削除されたら index.html に戻す（参加者・主催者共通）
-onValue(ref(db, `rooms/${currentRoomCode}`), snapshot => {
-  if (!snapshot.exists()) {
-    alert("ホストがルームを解散しました");
-    window.location.href = "index.html"; // もしくはトップに戻す
-  }
-});
+const submitJoin = document.getElementById("submitJoin");
+const cancelJoin = document.getElementById("cancelJoin");
+const joinUI = document.getElementById("joinRoomUI");
+const joinInput = document.getElementById("joinRoomCode");
+const roomInfo = document.getElementById("roomInfo");
+const playerList = document.getElementById("playerList");
 
 function disableBothButtons() {
   createBtn.classList.add("disabled");
@@ -55,18 +55,27 @@ function enableBothButtons() {
   joinBtn.classList.remove("disabled");
 }
 
+function displayPlayers(players) {
+  playerList.innerHTML = "";
+  Object.values(players || {}).forEach((player, index) => {
+    const name = player.name || `プレイヤー${index + 1}`;
+    const li = document.createElement("li");
+    li.textContent = `・${name}`;
+    playerList.appendChild(li);
+  });
+}
 
-// ✅ 「ルームに入る」ボタン → 入力欄表示 + ボタン無効化
+// 「ルームに入る」ボタン
 joinBtn.addEventListener("click", () => {
-  document.getElementById("joinRoomUI").style.display = "block";
+  joinUI.style.display = "block";
   window.appState.isEnteringCode = true;
   disableBothButtons();
 });
 
-// ✅ 「キャンセル」ボタン → 入力欄非表示 + 状態とボタン復帰
+// 「キャンセル」ボタン
 cancelJoin.addEventListener("click", () => {
-  document.getElementById("joinRoomUI").style.display = "none";
-  document.getElementById("joinRoomCode").value = "";
+  joinUI.style.display = "none";
+  joinInput.value = "";
   window.appState.isEnteringCode = false;
 
   if (!window.appState.isCreating && !window.appState.isJoining && !window.appState.hasJoined) {
@@ -74,14 +83,14 @@ cancelJoin.addEventListener("click", () => {
   }
 });
 
-// ✅ 「参加」ボタン → 実際の参加処理
+// 「参加」ボタン
 submitJoin.addEventListener("click", async () => {
   if (window.appState.isCreating || window.appState.isJoining || !window.appState.isEnteringCode) return;
 
   window.appState.isJoining = true;
   disableBothButtons();
 
-  const code = document.getElementById("joinRoomCode").value.trim();
+  const code = joinInput.value.trim();
   if (!code) {
     alert("コードが未入力です");
     window.appState.isJoining = false;
@@ -103,27 +112,48 @@ submitJoin.addEventListener("click", async () => {
       name: localStorage.getItem("playerName") || "名無し"
     });
 
+    // 🔌 切断されたら自分だけ削除
+    const playerRef = ref(db, `rooms/${code}/players/${myUID}`);
+    await onDisconnect(playerRef).remove();
+
+    // 👀 ルーム全体が消えたらトップに戻す
+    onValue(ref(db, `rooms/${code}`), snapshot => {
+      if (!snapshot.exists()) {
+        alert("ホストがルームを解散しました");
+        window.location.href = "index.html";
+      }
+    });
+
+    // 表示
+    roomInfo.innerHTML = `ルーム番号：<strong>${code}</strong><br>参加者一覧：`;
+    onValue(ref(db, `rooms/${code}/players`), snap => displayPlayers(snap.val()));
+
     // 状態更新
     window.appState.isJoining = false;
     window.appState.isEnteringCode = false;
     window.appState.hasJoined = true;
 
-    document.getElementById("joinRoomUI").style.display = "none";
-    document.getElementById("joinRoomCode").value = "";
-
-    const roomInfo = document.getElementById("roomInfo");
-    roomInfo.innerHTML = `ルーム番号：<strong>${code}</strong><br>参加者一覧：`;
-    onValue(ref(db, `rooms/${code}/players`), snap => displayPlayers(snap.val()));
-
-    // 🔒 完全封印（参加済み）
+    joinUI.style.display = "none";
+    joinInput.value = "";
     disableBothButtons();
 
   } catch (e) {
     console.error("参加失敗:", e);
     alert(e.message || "参加に失敗しました");
-
     window.appState.isJoining = false;
     window.appState.isEnteringCode = false;
     enableBothButtons();
+  }
+});
+
+// 匿名ログイン処理（認証がないとUIDが使えない）
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    myUID = user.uid;
+    if (!window.appState.hasJoined) {
+      enableBothButtons();
+    }
+  } else {
+    await signInAnonymously(auth);
   }
 });
