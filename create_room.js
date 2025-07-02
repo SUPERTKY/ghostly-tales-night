@@ -71,15 +71,7 @@ async function createRoomAndJoin(uid) {
 
   const playerName = localStorage.getItem("playerName") || "名無し";
 
-  const roomsSnapshot = await get(ref(db, "rooms"));
-  const rooms = roomsSnapshot.val();
-  const alreadyCreatedRoom = Object.entries(rooms || {}).find(([_, room]) => room.host === uid);
-  if (alreadyCreatedRoom) {
-    alert("すでにルームを作成しています！");
-    appState.isCreating = false;
-    return;
-  }
-
+  // 空いてるコード探す
   let roomCode;
   while (true) {
     const codeCandidate = generateRoomCode();
@@ -92,37 +84,41 @@ async function createRoomAndJoin(uid) {
 
   currentRoomCode = roomCode;
 
+  // ✅ まずルーム作成
   await set(ref(db, `rooms/${roomCode}`), {
     createdAt: Date.now(),
     status: "waiting",
     host: uid
   });
 
+  // ✅ プレイヤー登録
   await set(ref(db, `rooms/${roomCode}/players/${uid}`), {
     uid,
     name: playerName
   });
 
-  roomInfo.innerHTML = `ルーム番号：<strong>${roomCode}</strong><br>参加者一覧：`;
+  // ✅ 🔥ここでonDisconnect設定（正しいタイミング）
+  const hostRef = ref(db, `rooms/${roomCode}`);
+  await onDisconnect(hostRef).remove();
 
+  // ✅ ルーム削除監視（全員）
+  onValue(ref(db, `rooms/${roomCode}`), snapshot => {
+    if (!snapshot.exists()) {
+      alert("ホストがルームを解散しました");
+      window.location.href = "index.html";
+    }
+  });
+
+  // 表示処理など
+  roomInfo.innerHTML = `ルーム番号：<strong>${roomCode}</strong><br>参加者一覧：`;
   onValue(ref(db, `rooms/${roomCode}/players`), snapshot => {
     displayPlayers(snapshot.val());
   });
 
   appState.hasCreated = true;
   appState.isCreating = false;
-  // 主催者の onDisconnect 処理
-const hostRef = ref(db, `rooms/${roomCode}`);
-await onDisconnect(hostRef).remove();  // 切断されたらルームごと削除
-// ルームが削除されたら index.html に戻す（参加者・主催者共通）
-onValue(ref(db, `rooms/${currentRoomCode}`), snapshot => {
-  if (!snapshot.exists()) {
-    alert("ホストがルームを解散しました");
-    window.location.href = "index.html"; // もしくはトップに戻す
-  }
-});
-
 }
+
 
 async function joinRoom(code, uid) {
   if (appState.hasJoined || appState.hasCreated || appState.isCreating || appState.isJoining) return;
