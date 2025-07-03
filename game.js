@@ -1,35 +1,27 @@
 import {
-  getDatabase, ref, onDisconnect, get
+  initializeApp,
+  getApps,
+  getApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+  getDatabase,
+  ref,
+  get,
+  onValue,
+  onDisconnect
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 import {
-  getAuth, signInAnonymously, onAuthStateChanged
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// Firebase初期化後の処理
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return;
-
-  const uid = user.uid;
-  const hostRef = ref(db, `rooms/${roomCode}`);
-
-  // ✅ 再度 onDisconnect を設定
-  await onDisconnect(hostRef).remove();
-});
-
-// ルーム削除を監視（ホストが落ちたなど）
-const roomRef = ref(db, `rooms/${roomCode}`);
-onValue(roomRef, (snapshot) => {
-  if (!snapshot.exists()) {
-    alert("ホストがルームを解散したため、ゲームを終了します");
-    window.location.href = "index.html";
-  }
-});
 // ✅ クエリパラメータから roomCode を取得
 const params = new URLSearchParams(location.search);
 const roomCode = params.get("roomCode");
 
-// ❗️クエリがなければ強制送還
 if (!roomCode) {
   alert("ルーム情報が見つかりませんでした");
   window.location.href = "index.html";
@@ -49,22 +41,41 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
+const auth = getAuth(app);
 
-// ✅ タブ切替で強制送還
+// ✅ 認証して onDisconnect を再設定
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    await signInAnonymously(auth);
+    return;
+  }
+
+  const uid = user.uid;
+  const hostRef = ref(db, `rooms/${roomCode}`);
+  await onDisconnect(hostRef).remove();
+});
+
+// ✅ タブ離脱時に戻す処理（戻さないなら削除）
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
     window.location.href = "index.html";
   }
 });
 
-// ✅ プレイヤー表示領域
-const playerList = document.getElementById("playerList");
+// ✅ ホストがルームを削除したら強制送還
+const roomRef = ref(db, `rooms/${roomCode}`);
+onValue(roomRef, (snapshot) => {
+  if (!snapshot.exists()) {
+    alert("ホストがルームを解散したため、ゲームを終了します");
+    window.location.href = "index.html";
+  }
+});
 
-// ✅ フェードアウトとプレイヤー表示処理
+// ✅ フェードアウト処理
 window.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("fadeOverlay");
-  
-  // 🔽 フェードアウト
+
+  // フェードアウト開始
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
@@ -73,12 +84,12 @@ window.addEventListener("DOMContentLoaded", () => {
     overlay.style.pointerEvents = "none";
   });
 
-  // 🔽 プレイヤー取得＆表示
   fetchAndShowPlayers();
 });
 
-// ✅ プレイヤーを取得してランダム表示
+// ✅ プレイヤーを取得してランダム順に表示
 async function fetchAndShowPlayers() {
+  const playerList = document.getElementById("playerList");
   const playersRef = ref(db, `rooms/${roomCode}/players`);
   const snapshot = await get(playersRef);
 
