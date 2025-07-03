@@ -142,7 +142,17 @@ async function createRoomAndJoin(uid) {
   appState.hasCreated = true;
   appState.isCreating = false;
   startBtn.style.display = "block";
+  onValue(ref(db, `rooms/${currentRoomCode}/status`), (snapshot) => {
+  if (snapshot.val() === "started") {
+    // フェード演出＋移動
+    const overlay = document.getElementById("fadeOverlay");
+    overlay.style.opacity = "1";
 
+    setTimeout(() => {
+      window.location.href = "game.html"; // 遷移先に変更
+    }, 1500); // フェード完了後に遷移
+  }
+});
 }
 
 
@@ -225,17 +235,7 @@ submitJoin.addEventListener("click", () => {
   }
   joinRoom(code, myUID);
 });
-onValue(ref(db, `rooms/${currentRoomCode}/status`), (snapshot) => {
-  if (snapshot.val() === "started") {
-    // フェード演出＋移動
-    const overlay = document.getElementById("fadeOverlay");
-    overlay.style.opacity = "1";
 
-    setTimeout(() => {
-      window.location.href = "game.html"; // 遷移先に変更
-    }, 1500); // フェード完了後に遷移
-  }
-});
 startBtn.addEventListener("click", async () => {
   // 効果音を再生
   const sound = document.getElementById("startSound");
