@@ -33,8 +33,7 @@ document.addEventListener("visibilitychange", () => {
   }
 });
 // ✅ クエリからルームコードを取得
-const params = new URLSearchParams(window.location.search);
-const roomCode = params.get("roomCode");
+
 // フェードアウト（黒画面を消す）
 window.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("fadeOverlay");
