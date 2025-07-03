@@ -82,6 +82,7 @@ function displayPlayers(players) {
 }
 
 async function createRoomAndJoin(uid) {
+　disableCreateButton();
   disableJoinButton();  // ✅ ルーム作成後は「参加」ボタンを無効に
 
   if (appState.hasCreated || appState.hasJoined || appState.isCreating || appState.isJoining) return;
