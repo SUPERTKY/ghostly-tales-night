@@ -123,7 +123,9 @@ async function createRoomAndJoin(uid) {
 
   // ✅ 🔥ここでonDisconnect設定（正しいタイミング）
   const hostRef = ref(db, `rooms/${roomCode}`);
-  await onDisconnect(hostRef).remove();
+  // onDisconnect 削除 → game開始前にはキャンセル
+await onDisconnect(hostRef).cancel();
+
 
   // ✅ ルーム削除監視（全員）
   onValue(ref(db, `rooms/${roomCode}`), snapshot => {
