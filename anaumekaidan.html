@@ -65,7 +65,18 @@
   <button id="submitJoin">参加</button>
   <button id="cancelJoin">キャンセル</button>
 </div>
+<audio id="startSound" src="assets/start.mp3" preload="auto"></audio>
 
+<div id="fadeOverlay" style="
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: black;
+  opacity: 0;
+  transition: opacity 1.5s;
+  pointer-events: none;
+  z-index: 9999;
+"></div>
 
 
   <script type="module" src="create_room.js"></script>
