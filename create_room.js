@@ -37,6 +37,23 @@ const joinInput = document.getElementById("joinRoomCode");
 const joinUI = document.getElementById("joinRoomUI");
 const roomInfo = document.getElementById("roomInfo");
 const playerList = document.getElementById("playerList");
+function disableBothButtons() {
+  createBtn.classList.add("disabled");
+  joinBtn.classList.add("disabled");
+}
+
+function enableBothButtons() {
+  createBtn.classList.remove("disabled");
+  joinBtn.classList.remove("disabled");
+}
+
+function disableJoinButton() {
+  joinBtn.classList.add("disabled");
+}
+
+function disableCreateButton() {
+  createBtn.classList.add("disabled");
+}
 
 // 状態変数
 let myUID = null;
@@ -65,6 +82,8 @@ function displayPlayers(players) {
 }
 
 async function createRoomAndJoin(uid) {
+  disableJoinButton();  // ✅ ルーム作成後は「参加」ボタンを無効に
+
   if (appState.hasCreated || appState.hasJoined || appState.isCreating || appState.isJoining) return;
 
   appState.isCreating = true;
