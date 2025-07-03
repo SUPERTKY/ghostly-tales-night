@@ -249,13 +249,25 @@ submitJoin.addEventListener("click", () => {
 });
 
 startBtn.addEventListener("click", async () => {
-  window.location.href = `game.html?roomCode=${currentRoomCode}`;
   console.log("現在のルームコード:", currentRoomCode);
 
-  // 効果音を再生
+  // 🔊 効果音
   const sound = document.getElementById("startSound");
   sound.play();
 
-  // ステータスを "started" に変更
+  // ✅ 🔥 onDisconnect の削除予約をキャンセル
+  const hostRef = ref(db, `rooms/${currentRoomCode}`);
+  await onDisconnect(hostRef).cancel();  // 🔥 これが重要
+
+  // ✅ ステータスを "started" に変更
   await set(ref(db, `rooms/${currentRoomCode}/status`), "started");
+
+  // ✅ 少し遅らせてから遷移（音が鳴り終わる＋フェード演出など）
+  const overlay = document.getElementById("fadeOverlay");
+  overlay.style.opacity = "1";
+
+  setTimeout(() => {
+    window.location.href = `game.html?roomCode=${currentRoomCode}`;
+  }, 1500);
 });
+
