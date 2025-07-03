@@ -5,7 +5,14 @@ import {
 import {
   getDatabase, ref, get
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
+// ルーム削除を監視（ホストが落ちたなど）
+const roomRef = ref(db, `rooms/${roomCode}`);
+onValue(roomRef, (snapshot) => {
+  if (!snapshot.exists()) {
+    alert("ホストがルームを解散したため、ゲームを終了します");
+    window.location.href = "index.html";
+  }
+});
 // ✅ クエリパラメータから roomCode を取得
 const params = new URLSearchParams(location.search);
 const roomCode = params.get("roomCode");
