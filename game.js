@@ -21,6 +21,18 @@ const db = getDatabase(app);
 // ✅ クエリからルームコードを取得
 const params = new URLSearchParams(window.location.search);
 const roomCode = params.get("roomCode");
+// フェードアウト（黒画面を消す）
+window.addEventListener("DOMContentLoaded", () => {
+  const overlay = document.getElementById("fadeOverlay");
+  setTimeout(() => {
+    overlay.style.opacity = "0";
+  }, 100); // 少し遅らせて透明化
+
+  // 完全に透明になったらクリックできるように
+  overlay.addEventListener("transitionend", () => {
+    overlay.style.pointerEvents = "none";
+  });
+});
 
 if (!roomCode) {
   alert("ルーム情報が見つかりませんでした");
