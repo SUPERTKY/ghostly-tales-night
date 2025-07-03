@@ -1,9 +1,18 @@
+
 import {
   initializeApp, getApps, getApp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getDatabase, ref, get
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+// ✅ クエリパラメータから roomCode を取得
+const params = new URLSearchParams(location.search);
+const roomCode = params.get("roomCode");
+
+// 不正アクセス（クエリなし）なら追い出す
+if (!roomCode) {
+  window.location.href = "index.html";
+}
 
 const firebaseConfig = {
   apiKey: "AIzaSyB1hyrktLnx7lzW2jf4ZeIzTrBEY-IEgPo",
@@ -17,7 +26,12 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
-
+// Firebase設定のあと（またはページ読み込み後）にこれを追加
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    window.location.href = "index.html";
+  }
+});
 // ✅ クエリからルームコードを取得
 const params = new URLSearchParams(window.location.search);
 const roomCode = params.get("roomCode");
