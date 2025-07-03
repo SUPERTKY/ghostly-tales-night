@@ -237,6 +237,8 @@ submitJoin.addEventListener("click", () => {
 });
 
 startBtn.addEventListener("click", async () => {
+  window.location.href = `game.html?roomCode=${currentRoomCode}`;
+
   // 効果音を再生
   const sound = document.getElementById("startSound");
   sound.play();
