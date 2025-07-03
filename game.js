@@ -1,19 +1,23 @@
-
 import {
   initializeApp, getApps, getApp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
 import {
   getDatabase, ref, get
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
 // ✅ クエリパラメータから roomCode を取得
 const params = new URLSearchParams(location.search);
 const roomCode = params.get("roomCode");
 
-// 不正アクセス（クエリなし）なら追い出す
+// ❗️クエリがなければ強制送還
 if (!roomCode) {
+  alert("ルーム情報が見つかりませんでした");
   window.location.href = "index.html";
+  throw new Error("ルームコードなし");
 }
 
+// ✅ Firebase 初期化
 const firebaseConfig = {
   apiKey: "AIzaSyB1hyrktLnx7lzW2jf4ZeIzTrBEY-IEgPo",
   authDomain: "horror-game-9b2d2.firebaseapp.com",
@@ -26,36 +30,35 @@ const firebaseConfig = {
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
-// Firebase設定のあと（またはページ読み込み後）にこれを追加
+
+// ✅ タブ切替で強制送還
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
     window.location.href = "index.html";
   }
 });
-// ✅ クエリからルームコードを取得
 
-// フェードアウト（黒画面を消す）
+// ✅ プレイヤー表示領域
+const playerList = document.getElementById("playerList");
+
+// ✅ フェードアウトとプレイヤー表示処理
 window.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("fadeOverlay");
+  
+  // 🔽 フェードアウト
   setTimeout(() => {
     overlay.style.opacity = "0";
-  }, 100); // 少し遅らせて透明化
+  }, 100);
 
-  // 完全に透明になったらクリックできるように
   overlay.addEventListener("transitionend", () => {
     overlay.style.pointerEvents = "none";
   });
+
+  // 🔽 プレイヤー取得＆表示
+  fetchAndShowPlayers();
 });
 
-if (!roomCode) {
-  alert("ルーム情報が見つかりませんでした");
-  throw new Error("ルームコードなし");
-}
-
-// プレイヤー表示領域
-const playerList = document.getElementById("playerList");
-
-// プレイヤーを取得＆表示
+// ✅ プレイヤーを取得してランダム表示
 async function fetchAndShowPlayers() {
   const playersRef = ref(db, `rooms/${roomCode}/players`);
   const snapshot = await get(playersRef);
@@ -68,15 +71,9 @@ async function fetchAndShowPlayers() {
   const players = snapshot.val();
   const shuffled = Object.values(players).sort(() => Math.random() - 0.5);
 
-  // 表示
   shuffled.forEach((player, index) => {
     const li = document.createElement("li");
     li.textContent = `${index + 1}. ${player.name || "名無し"}`;
     playerList.appendChild(li);
   });
 }
-
-// DOMが読み込まれたら実行
-window.addEventListener("DOMContentLoaded", () => {
-  fetchAndShowPlayers();
-});
