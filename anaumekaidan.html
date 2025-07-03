@@ -40,7 +40,10 @@
 
   <img src="assets/create_button.png" id="createRoomBtn" class="button-img" alt="ルームを作る">
   <img src="assets/join_button.png" id="joinRoomBtn" class="button-img" alt="ルームに入る">
-  <button id="startBtn" style="display: none;">開始する</button>
+ <!-- 🔽 追加（ボタンラッパー） -->
+<div id="startButtonWrapper" style="display: none; margin-top: 20px; text-align: center;">
+  <button id="startBtn" style="padding: 10px 20px; font-size: 16px;">開始する</button>
+</div>
 
   <div id="joinRoomUI" style="display:none; text-align:center;">
   <input type="text" id="joinRoomCode" placeholder="ルーム番号を入力">
