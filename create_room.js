@@ -37,6 +37,8 @@ const joinInput = document.getElementById("joinRoomCode");
 const joinUI = document.getElementById("joinRoomUI");
 const roomInfo = document.getElementById("roomInfo");
 const playerList = document.getElementById("playerList");
+const startBtn = document.getElementById("startBtn");
+
 function disableBothButtons() {
   createBtn.classList.add("disabled");
   joinBtn.classList.add("disabled");
@@ -139,6 +141,8 @@ async function createRoomAndJoin(uid) {
 
   appState.hasCreated = true;
   appState.isCreating = false;
+  startBtn.style.display = "block";
+
 }
 
 
