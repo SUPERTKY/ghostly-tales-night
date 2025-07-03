@@ -191,6 +191,18 @@ async function joinRoom(code, uid) {
   joinUI.style.display = "none";
   appState.hasJoined = true;
   appState.isJoining = false;
+    // 🔍 参加者も "started" を監視
+  onValue(ref(db, `rooms/${code}/status`), (snapshot) => {
+    if (snapshot.val() === "started") {
+      const overlay = document.getElementById("fadeOverlay");
+      overlay.style.opacity = "1";
+
+      setTimeout(() => {
+        window.location.href = `game.html?roomCode=${code}`;
+      }, 1500);
+    }
+  });
+
 }
 
 // 認証とボタン制御
