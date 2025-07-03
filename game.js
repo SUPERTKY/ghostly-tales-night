@@ -1,10 +1,22 @@
 import {
-  initializeApp, getApps, getApp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  getDatabase, ref, onDisconnect, get
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 import {
-  getDatabase, ref, get
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+  getAuth, signInAnonymously, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+// Firebase初期化後の処理
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return;
+
+  const uid = user.uid;
+  const hostRef = ref(db, `rooms/${roomCode}`);
+
+  // ✅ 再度 onDisconnect を設定
+  await onDisconnect(hostRef).remove();
+});
+
 // ルーム削除を監視（ホストが落ちたなど）
 const roomRef = ref(db, `rooms/${roomCode}`);
 onValue(roomRef, (snapshot) => {
