@@ -123,34 +123,4 @@ onAuthStateChanged(auth, async (user) => {
     console.log("ホストとして onDisconnect 削除設定を game.html でも実施");
   }
 });
-function unlockUI() {
-  const playButton = document.getElementById("playButton");
-  const fadeOverlay = document.getElementById("fadeOverlay");
-
-  playButton.classList.remove("disabled");
-  playButton.classList.add("enabled");
-  document.getElementById("lockArea").style.display = "none";
-  document.getElementById("error").style.display = "none";
-  fadeOverlay.style.opacity = "0";
-  fadeOverlay.style.pointerEvents = "none";
-
-  // 🔽 名簿を表示（例としてローカルストレージの名前だけ表示）
-  const nameListArea = document.getElementById("nameListArea");
-  const playerName = localStorage.getItem("playerName") || "名無し";
-  nameListArea.textContent = `参加者: ${playerName}`;
-  nameListArea.style.display = "block";
-
-  // 🔽 一定時間後、フェードイン → テキストボックス表示
-  setTimeout(() => {
-    fadeOverlay.style.opacity = "1";
-    fadeOverlay.style.pointerEvents = "auto";
-
-    // フェード完了後に表示する処理
-    setTimeout(() => {
-      fadeOverlay.style.opacity = "0";
-      fadeOverlay.style.pointerEvents = "none";
-      document.getElementById("bigTextboxArea").style.display = "block";
-    }, 1200); // フェード時間（CSSと一致させて）
-  }, 3000); // 名簿表示から何秒後にフェードするか
-}
 
