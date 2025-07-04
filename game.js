@@ -87,9 +87,10 @@ window.addEventListener("DOMContentLoaded", () => {
   fetchAndShowPlayers();
 });
 
-// ✅ プレイヤーを取得してランダム順に表示
 async function fetchAndShowPlayers() {
   const playerList = document.getElementById("playerList");
+  playerList.innerHTML = ""; // 🔴 これを追加して、前の内容を消す
+
   const playersRef = ref(db, `rooms/${roomCode}/players`);
   const snapshot = await get(playersRef);
 
@@ -107,22 +108,7 @@ async function fetchAndShowPlayers() {
     playerList.appendChild(li);
   });
 }
-onAuthStateChanged(auth, async (user) => {
-  if (!user) {
-    await signInAnonymously(auth);
-    return;
-  }
 
-  const uid = user.uid;
-  const hostRef = ref(db, `rooms/${roomCode}/host`);
-  const hostSnap = await get(hostRef);
-
-  if (hostSnap.exists() && hostSnap.val() === uid) {
-    const roomRef = ref(db, `rooms/${roomCode}`);
-    await onDisconnect(roomRef).remove();
-    console.log("ホストとして onDisconnect 削除設定を game.html でも実施");
-  }
-});
 // ✅ フェードアウト完了後にプレイヤー名表示 → 3秒後に再フェードイン＆テキスト表示
 window.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("fadeOverlay");
