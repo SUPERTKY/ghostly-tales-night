@@ -107,3 +107,20 @@ async function fetchAndShowPlayers() {
     playerList.appendChild(li);
   });
 }
+onAuthStateChanged(auth, async (user) => {
+  if (!user) {
+    await signInAnonymously(auth);
+    return;
+  }
+
+  const uid = user.uid;
+  const hostRef = ref(db, `rooms/${roomCode}/host`);
+  const hostSnap = await get(hostRef);
+
+  if (hostSnap.exists() && hostSnap.val() === uid) {
+    const roomRef = ref(db, `rooms/${roomCode}`);
+    await onDisconnect(roomRef).remove();
+    console.log("ホストとして onDisconnect 削除設定を game.html でも実施");
+  }
+});
+
