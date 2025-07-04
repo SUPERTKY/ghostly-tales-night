@@ -123,4 +123,41 @@ onAuthStateChanged(auth, async (user) => {
     console.log("ホストとして onDisconnect 削除設定を game.html でも実施");
   }
 });
+// ✅ フェードアウト完了後にプレイヤー名表示 → 3秒後に再フェードイン＆テキスト表示
+window.addEventListener("DOMContentLoaded", () => {
+  const overlay = document.getElementById("fadeOverlay");
+
+  // フェードアウト開始
+  setTimeout(() => {
+    overlay.style.opacity = "0";
+  }, 100);
+
+  overlay.addEventListener("transitionend", async () => {
+    overlay.style.pointerEvents = "none";
+
+    // プレイヤー表示
+    await fetchAndShowPlayers();
+
+    // 少し待ってから再度フェードイン
+    setTimeout(() => {
+      overlay.style.opacity = "1";
+      overlay.style.pointerEvents = "auto";
+    }, 3000); // ← 名簿表示のため3秒待つ
+  });
+
+  // 再フェードイン完了後にテキストボックス表示
+  overlay.addEventListener("transitionend", () => {
+    if (overlay.style.opacity === "1") {
+      // フェードインが終わったとき
+      const textboxContainer = document.getElementById("textboxContainer");
+      textboxContainer.style.display = "block";
+
+      // フェードアウトしてもう邪魔にならないように
+      setTimeout(() => {
+        overlay.style.opacity = "0";
+        overlay.style.pointerEvents = "none";
+      }, 100); // 軽くフェードアウト
+    }
+  });
+});
 
