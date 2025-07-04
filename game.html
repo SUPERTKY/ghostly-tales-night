@@ -40,13 +40,14 @@
 
   <!-- フェードオーバーレイ -->
   <div id="fadeOverlay"></div>
-  <!-- 名簿表示エリア -->
-<div id="nameListArea" style="display: none; font-size: 24px; text-align: center; margin-top: 30px;"></div>
 
-<!-- 巨大テキストボックス -->
-<div id="bigTextboxArea" style="display: none; margin: 20px auto; max-width: 80%;">
-  <textarea id="bigText" maxlength="1000" rows="10" style="width: 100%; font-size: 18px;"></textarea>
+<ul id="playerList"></ul>
+
+<!-- このテキストボックスは初めは非表示 -->
+<div id="textboxContainer" style="display: none; margin-top: 20px;">
+  <textarea id="bigTextbox" maxlength="1000" rows="10" cols="50" style="width: 100%; font-size: 16px;"></textarea>
 </div>
+
 
   <h1>行動順</h1>
   <ul id="playerList"></ul>
