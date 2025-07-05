@@ -71,17 +71,47 @@
   margin: 0;
 "></ul>
 
-<!-- ✅ テキストボックスを穴埋めに変更 -->
-<div id="textboxContainer">
-  <div class="line">朝起きると、台所から <input class="fill-blank" maxlength="30" /> の音が聞こえた。</div>
-  <div class="line">食卓にはいつも通り、<input class="fill-blank" maxlength="30" /> が並んでいた。</div>
-  <div class="line">母は笑いながら「<input class="fill-blank" maxlength="30" />」と言った。</div>
-  <div class="line">でも、昨日も全く同じことを言っていた気がした。</div>
-  <div class="line">テレビをつけると、画面には <input class="fill-blank" maxlength="30" /> がずっと映っていた。</div>
-  <div class="line">父が読んでいる新聞の日付が <input class="fill-blank" maxlength="30" /> だった。</div>
-  <div class="line">そして、 <input class="fill-blank" maxlength="30" /> がリビングに降りてきた瞬間、私は黙って立ち上がった。</div>
-  <div class="line">だって、<input class="fill-blank" maxlength="30" /> は、昨日の夜に <input class="fill-blank" maxlength="30" /> から戻ってきていないはずだから。</div>
+<!-- ✅ テキストボックス（最初は非表示） -->
+<div id="textboxContainer" style="display: none;">
+  <div id="storyTemplate" style="
+    width: 80%;
+    margin: 50px auto;
+    font-size: 20px;
+    line-height: 2;
+    background-color: #111;
+    color: white;
+    padding: 30px;
+    border: 3px solid white;
+    box-shadow: 0 0 20px white;
+    text-align: left;
+  ">
+    朝起きると、台所から
+    <input type="text" maxlength="10" style="width: 100px;" />
+    の音が聞こえた。<br>
+    食卓にはいつも通り、
+    <input type="text" maxlength="10" style="width: 100px;" />
+    が並んでいた。<br>
+    母は笑いながら「
+    <input type="text" maxlength="15" style="width: 150px;" />
+    」と言った。<br>
+    でも、昨日も全く同じことを言っていた気がした。<br>
+    テレビをつけると、画面には
+    <input type="text" maxlength="10" style="width: 100px;" />
+    がずっと映っていた。<br>
+    父が読んでいる新聞の日付が
+    <input type="text" maxlength="10" style="width: 100px;" />
+    だった。<br>
+    そして、
+    <input type="text" maxlength="10" style="width: 100px;" />
+    がリビングに降りてきた瞬間、私は黙って立ち上がった。<br>
+    だって、
+    <input type="text" maxlength="10" style="width: 100px;" />
+    は、昨日の夜に
+    <input type="text" maxlength="10" style="width: 100px;" />
+    から戻ってきていないはずだから。
+  </div>
 </div>
+
 
 <div id="bottomUI" style="display: none;">
    <img id="readyButton" src="assets/ready_button.png" alt="準備OK" />
