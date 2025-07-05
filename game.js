@@ -111,11 +111,11 @@ async function fetchAndShowPlayers() {
 
 window.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("fadeOverlay");
+  const playerList = document.getElementById("playerList");
+  const textboxContainer = document.getElementById("textboxContainer");
 
-  // ステップ管理用フラグ
   let step = 0;
 
-  // ✅ フェード終了時のイベント
   const onTransitionEnd = async () => {
     switch (step) {
       case 0: // 最初のフェードアウト完了 → 名簿表示
@@ -123,25 +123,30 @@ window.addEventListener("DOMContentLoaded", () => {
         await fetchAndShowPlayers();
         step = 1;
 
-        // 次のフェードイン（黒くなる）を少し待ってから開始
+        // 次のフェードインへ
         setTimeout(() => {
           overlay.style.pointerEvents = "auto";
-          overlay.style.opacity = "1"; // フェードイン（暗転）
-        }, 2000);
+          overlay.style.opacity = "1"; // フェードイン
+        }, 3000);
         break;
 
-      case 1: // フェードイン完了 → すぐにフェードアウト
-        overlay.style.opacity = "0"; // フェードアウト（明るく）
+      case 1: // フェードイン完了 → 名簿縮小＋テキストボックス表示 → フェードアウト
+        // 🔻 名簿を左上に縮小配置
+        playerList.style.position = "absolute";
+        playerList.style.top = "10px";
+        playerList.style.left = "10px";
+        playerList.style.fontSize = "14px";
+
+        // 🔻 テキストボックス表示（フェード中に）
+        textboxContainer.style.display = "block";
+
+        // すぐにフェードアウト
+        overlay.style.opacity = "0";
         step = 2;
         break;
 
-      case 2: // フェードアウト完了 → テキストボックス表示
+      case 2: // 最終フェードアウト → 完全に終了
         overlay.style.pointerEvents = "none";
-
-        // ✅ ここでテキストボックスを表示
-        document.getElementById("textboxContainer").style.display = "block";
-
-        // ✅ 以後、フェード処理は無効化（イベントリスナ削除）
         overlay.removeEventListener("transitionend", onTransitionEnd);
         break;
     }
@@ -149,7 +154,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   overlay.addEventListener("transitionend", onTransitionEnd);
 
-  // ✅ 最初のフェードアウト開始（ページ読み込み直後）
+  // 🔻 最初のフェードアウト（暗転解除）
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
