@@ -214,7 +214,6 @@ async function startCameraAndConnect() {
     await set(ref(db, `rooms/${roomCode}/players/${auth.currentUser.uid}/cameraReady`), true);
 
     // 残りのP2P接続処理へ
-    ...
   } catch (err) {
     console.error("カメラ取得エラー:", err);
     alert("カメラの許可が必要です。他のアプリを閉じてください。");
