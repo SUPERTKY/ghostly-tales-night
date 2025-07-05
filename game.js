@@ -1,3 +1,4 @@
+// Firebaseモジュール読み込み
 import {
   initializeApp,
   getApps,
@@ -5,20 +6,14 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
-  getDatabase,
-  ref,
-  get,
-  onValue,
-  onDisconnect
+  getDatabase, ref, get, onValue, onDisconnect
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 import {
-  getAuth,
-  signInAnonymously,
-  onAuthStateChanged
+  getAuth, signInAnonymously, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// ✅ クエリパラメータから roomCode を取得
+// クエリパラメータから roomCode を取得
 const params = new URLSearchParams(location.search);
 const roomCode = params.get("roomCode");
 
@@ -28,7 +23,7 @@ if (!roomCode) {
   throw new Error("ルームコードなし");
 }
 
-// ✅ Firebase 初期化
+// Firebase 初期化
 const firebaseConfig = {
   apiKey: "AIzaSyB1hyrktLnx7lzW2jf4ZeIzTrBEY-IEgPo",
   authDomain: "horror-game-9b2d2.firebaseapp.com",
@@ -44,6 +39,9 @@ const db = getDatabase(app);
 const auth = getAuth(app);
 
 let sceneStarted = false;
+let remainingSeconds = 600;
+let timerStarted = false;
+let timerInterval = null;
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -51,14 +49,13 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  if (sceneStarted) return; // 🔒 二重実行防止
+  if (sceneStarted) return;
   sceneStarted = true;
 
   const uid = user.uid;
   const hostRef = ref(db, `rooms/${roomCode}`);
   await onDisconnect(hostRef).remove();
 
-  // 🔽 認証完了後にフェード開始処理
   startSceneFlow();
 });
 
@@ -100,14 +97,12 @@ async function fetchAndShowPlayers(retry = 0) {
   });
 }
 
-// ✅ タブ離脱時に戻す処理（戻さないなら削除）
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
     window.location.href = "index.html";
   }
 });
 
-// ✅ ホストがルームを削除したら強制送還
 const roomRef = ref(db, `rooms/${roomCode}`);
 onValue(roomRef, (snapshot) => {
   if (!snapshot.exists()) {
@@ -115,6 +110,26 @@ onValue(roomRef, (snapshot) => {
     window.location.href = "index.html";
   }
 });
+
+function startCountdown() {
+  if (timerStarted) return;
+  timerStarted = true;
+
+  const timerDisplay = document.getElementById("countdownTimer");
+
+  timerInterval = setInterval(() => {
+    const minutes = Math.floor(remainingSeconds / 60);
+    const seconds = remainingSeconds % 60;
+    timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+    if (remainingSeconds <= 0) {
+      clearInterval(timerInterval);
+    } else {
+      remainingSeconds--;
+    }
+  }, 1000);
+}
+
 function startSceneFlow() {
   const overlay = document.getElementById("fadeOverlay");
   const playerList = document.getElementById("playerList");
@@ -122,19 +137,6 @@ function startSceneFlow() {
   const bottomUI = document.getElementById("bottomUI");
 
   let step = 0;
-  let timerStarted = false;
-  let remainingSeconds = 600;
-
-  const timerDisplay = document.getElementById("countdownTimer");
-  function updateTimer() {
-    const minutes = Math.floor(remainingSeconds / 60);
-    const seconds = remainingSeconds % 60;
-    timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-    if (remainingSeconds > 0) {
-      remainingSeconds--;
-      setTimeout(updateTimer, 1000);
-    }
-  }
 
   const onTransitionEnd = async () => {
     switch (step) {
@@ -145,7 +147,7 @@ function startSceneFlow() {
 
         setTimeout(() => {
           overlay.style.pointerEvents = "auto";
-          overlay.style.opacity = "1"; // フェードイン
+          overlay.style.opacity = "1";
         }, 3000);
         break;
 
@@ -160,13 +162,9 @@ function startSceneFlow() {
         playerList.style.padding = "5px";
 
         textboxContainer.style.display = "block";
-
-        // ✅ このタイミングでボタンとタイマーを表示＆カウント開始
         bottomUI.style.display = "flex";
-        if (!timerStarted) {
-          timerStarted = true;
-          updateTimer();
-        }
+
+        startCountdown();
 
         overlay.style.opacity = "0";
         step = 2;
@@ -181,24 +179,7 @@ function startSceneFlow() {
 
   overlay.addEventListener("transitionend", onTransitionEnd);
 
-  // 最初のフェードアウト開始
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
 }
-
-let remainingSeconds = 600; // 10分
-const timerDisplay = document.getElementById("countdownTimer");
-
-function updateTimer() {
-  const minutes = Math.floor(remainingSeconds / 60);
-  const seconds = remainingSeconds % 60;
-  timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  if (remainingSeconds > 0) {
-    remainingSeconds--;
-    setTimeout(updateTimer, 1000);
-  }
-}
-
-updateTimer();
-
