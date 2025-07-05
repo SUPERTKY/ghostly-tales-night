@@ -123,8 +123,10 @@ function startCountdown() {
     timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 
     if (remainingSeconds <= 0) {
-      clearInterval(timerInterval);
-    } else {
+  clearInterval(timerInterval);
+  triggerStoryOutput(); // ✅ タイマーがゼロで出力
+}
+ else {
       remainingSeconds--;
     }
   }, 1000);
@@ -158,6 +160,7 @@ function startSceneFlow() {
   const playerList = document.getElementById("playerList");
   const textboxContainer = document.getElementById("textboxContainer");
   const bottomUI = document.getElementById("bottomUI");
+  const readyButton = document.getElementById("readyButton");
 
   let step = 0;
 
@@ -183,15 +186,33 @@ function startSceneFlow() {
         playerList.style.left = "10px";
         playerList.style.fontSize = "14px";
         playerList.style.padding = "5px";
-    const storyTemplateDiv = document.getElementById("storyTemplate");
-storyTemplateDiv.innerHTML = generateStoryTemplate();
 
-        textboxContainer.style.display = "block";
-        bottomUI.style.display = "flex";
+        textboxContainer.style.display = "none"; // ✅ テキストボックスは使わないので非表示
+        bottomUI.style.display = "flex";         // ✅ ボタンとタイマーを表示
 
-        startCountdown();
+        startCountdown(); // ✅ タイマー開始
 
-        overlay.style.opacity = "0";
+        // ✅ 「準備OK」ボタン処理
+        readyButton.addEventListener("click", async () => {
+          const uid = auth.currentUser?.uid;
+          if (!uid) return;
+
+          await set(ref(db, `rooms/${roomCode}/players/${uid}/ready`), true);
+          readyButton.classList.add("disabled");
+        });
+
+        // ✅ 準備完了を監視（全員readyなら出力）
+        onValue(ref(db, `rooms/${roomCode}/players`), (snapshot) => {
+          const players = snapshot.val();
+          if (!players) return;
+
+          const allReady = Object.values(players).every(p => p.ready);
+          if (allReady) {
+            triggerStoryOutput(); // ✅ 出力処理を呼び出し
+          }
+        });
+
+        overlay.style.opacity = "0"; // ✅ フェードアウトして表示開始
         step = 2;
         break;
 
@@ -204,7 +225,19 @@ storyTemplateDiv.innerHTML = generateStoryTemplate();
 
   overlay.addEventListener("transitionend", onTransitionEnd);
 
+  // 最初のフェードイン解除
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
+}
+
+let storyAlreadyOutput = false;
+
+function triggerStoryOutput() {
+  if (storyAlreadyOutput) return;
+  storyAlreadyOutput = true;
+
+  console.log("★ ストーリー回答を出力するタイミングです（まだ未実装）");
+
+  // 例：あとでここに回答取得→保存など追加できる
 }
