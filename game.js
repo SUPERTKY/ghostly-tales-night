@@ -245,7 +245,7 @@ textboxContainer.style.display = "block";
 }
 
 let storyAlreadyOutput = false;
-function triggerStoryOutput() {
+async function triggerStoryOutput() {
   if (storyAlreadyOutput) return;
   storyAlreadyOutput = true;
 
