@@ -332,13 +332,14 @@ async function fetchAndShowPlayers(retry = 0) {
 
   const roomSnap = await get(ref(db, `rooms/${roomCode}`));
   if (!roomSnap.exists()) {
-    if (retry < 5) {
+    if (retry < 10) { // ← 回数増やす
       setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
     } else {
       alert("ルームが見つかりませんでした（タイムアウト）");
       window.location.href = "index.html";
     }
     return;
+  }
   }
 
   const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
