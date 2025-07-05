@@ -6,9 +6,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
-  getDatabase, ref, get, onValue, onDisconnect, set
+  getDatabase, ref, get, set, onValue, onDisconnect
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
 
 import {
   getAuth, signInAnonymously, onAuthStateChanged
