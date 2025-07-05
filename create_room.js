@@ -281,16 +281,15 @@ document.addEventListener("click", () => {
   });
 }, { once: true }); // 1回だけ実行
 window.addEventListener("DOMContentLoaded", () => {
-  const overlay = document.getElementById("fadeOverlay2");
+  const overlay2 = document.getElementById("fadeOverlay2");
 
-  // 少し待ってから透明に（フェードアウト演出）
+  // 300ms後にフェードアウト
   setTimeout(() => {
-    overlay.style.opacity = "0";
-  }, 300); // 300ms程度待ってから開始
+    overlay2.style.opacity = "0";
+  }, 300);
 
-  // 終わったら操作可能に
-  overlay.addEventListener("transitionend", () => {
-    overlay.style.pointerEvents = "none";
+  overlay2.addEventListener("transitionend", () => {
+    overlay2.style.pointerEvents = "none";
   });
 });
 
