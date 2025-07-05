@@ -303,6 +303,134 @@ async function startCameraForCurrentUser() {
     alert("カメラにアクセスできませんでした");
   }
 }
+const peerConnections = {}; // uidごとにRTCPeerConnectionを保存
+let localStream = null;
+async function startCameraAndConnect() {
+  // ✅ まずカメラを取得
+  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+
+  const video = document.createElement("video");
+  video.srcObject = localStream;
+  video.autoplay = true;
+  video.playsInline = true;
+  video.muted = true;
+  video.style.width = "200px";
+  video.style.margin = "10px";
+
+  document.getElementById("videoGrid").appendChild(video);
+
+  // ✅ 他プレイヤーの一覧を取得して接続開始
+  const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
+  const players = playersSnap.val();
+  const myUID = auth.currentUser.uid;
+
+  for (const [uid, player] of Object.entries(players)) {
+    if (uid === myUID) continue;
+    createConnectionWith(uid);
+  }
+
+  // ✅ シグナリングを監視
+  listenForSignals();
+}
+async function createConnectionWith(remoteUID) {
+  const pc = new RTCPeerConnection();
+
+  localStream.getTracks().forEach(track => {
+    pc.addTrack(track, localStream);
+  });
+
+  pc.ontrack = (event) => {
+    const remoteVideo = document.createElement("video");
+    remoteVideo.srcObject = event.streams[0];
+    remoteVideo.autoplay = true;
+    remoteVideo.playsInline = true;
+    remoteVideo.style.width = "200px";
+    remoteVideo.style.margin = "10px";
+    document.getElementById("videoGrid").appendChild(remoteVideo);
+  };
+
+  pc.onicecandidate = (event) => {
+    if (event.candidate) {
+      const signalRef = ref(db, `rooms/${roomCode}/signals/${auth.currentUser.uid}/${remoteUID}/candidates`);
+      const newRef = push(signalRef);
+      set(newRef, event.candidate.toJSON());
+    }
+  };
+
+  // ✅ Offerを作って送信
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+
+  await set(ref(db, `rooms/${roomCode}/signals/${auth.currentUser.uid}/${remoteUID}/offer`), offer.toJSON());
+
+  peerConnections[remoteUID] = pc;
+}
+function listenForSignals() {
+  const myUID = auth.currentUser.uid;
+  const signalsRef = ref(db, `rooms/${roomCode}/signals`);
+
+  onValue(signalsRef, async (snapshot) => {
+    const allSignals = snapshot.val();
+    if (!allSignals) return;
+
+    for (const [fromUID, signalToMap] of Object.entries(allSignals)) {
+      if (fromUID === myUID) continue;
+
+      const signal = signalToMap[myUID];
+      if (!signal) continue;
+
+      let pc = peerConnections[fromUID];
+      if (!pc) {
+        pc = new RTCPeerConnection();
+        peerConnections[fromUID] = pc;
+
+        localStream.getTracks().forEach(track => {
+          pc.addTrack(track, localStream);
+        });
+
+        pc.ontrack = (event) => {
+          const remoteVideo = document.createElement("video");
+          remoteVideo.srcObject = event.streams[0];
+          remoteVideo.autoplay = true;
+          remoteVideo.playsInline = true;
+          remoteVideo.style.width = "200px";
+          remoteVideo.style.margin = "10px";
+          document.getElementById("videoGrid").appendChild(remoteVideo);
+        };
+
+        pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            const signalRef = ref(db, `rooms/${roomCode}/signals/${myUID}/${fromUID}/candidates`);
+            const newRef = push(signalRef);
+            set(newRef, event.candidate.toJSON());
+          }
+        };
+      }
+
+      if (signal.offer && !pc.currentRemoteDescription) {
+        await pc.setRemoteDescription(new RTCSessionDescription(signal.offer));
+        const answer = await pc.createAnswer();
+        await pc.setLocalDescription(answer);
+
+        await set(ref(db, `rooms/${roomCode}/signals/${myUID}/${fromUID}/answer`), answer.toJSON());
+      }
+
+      if (signal.answer && pc.signalingState !== "stable") {
+        await pc.setRemoteDescription(new RTCSessionDescription(signal.answer));
+      }
+
+      if (signal.candidates) {
+        for (const candidate of Object.values(signal.candidates)) {
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(candidate));
+          } catch (e) {
+            console.error("ICE candidate error:", e);
+          }
+        }
+      }
+    }
+  });
+}
 
 
 
