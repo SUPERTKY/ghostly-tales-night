@@ -272,4 +272,12 @@ startBtn.addEventListener("click", async () => {
     window.location.href = `game.html?roomCode=${currentRoomCode}`;
   }, 1500);
 });
+const bgm = document.getElementById("bgm");
+
+// ページロード後、ユーザーのクリックなどで再生を保証
+document.addEventListener("click", () => {
+  bgm.play().catch(e => {
+    console.warn("音楽の再生に失敗:", e);
+  });
+}, { once: true }); // 1回だけ実行
 
