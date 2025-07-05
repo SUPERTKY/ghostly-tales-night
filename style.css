@@ -110,6 +110,9 @@ html, body {
 }
 
 #readyButton {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
   display: block;
   margin: 0 auto;
 }
