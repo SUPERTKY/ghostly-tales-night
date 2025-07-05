@@ -102,19 +102,18 @@ html, body {
 }
 
 #bottomUI {
+  margin-top: 30px;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 20px;
-  margin-top: 30px;
-  flex-wrap: wrap; /* はみ出し防止 */
+  gap: 30px;
 }
 
 #readyButton {
-  height: 60px; /* 小さく調整 */
-  width: auto;
+  height: 80px;  /* ← ここで高さを調整 */
+  width: auto;   /* 幅は高さに合わせて自動 */
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s;
 }
 
 #readyButton:hover {
@@ -122,8 +121,7 @@ html, body {
 }
 
 #countdownTimer {
-  font-size: 28px;
+  font-size: 32px;
   color: #fff;
   font-family: monospace;
 }
-
