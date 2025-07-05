@@ -43,11 +43,16 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
 const auth = getAuth(app);
 
+let sceneStarted = false;
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     await signInAnonymously(auth);
     return;
   }
+
+  if (sceneStarted) return; // 🔒 二重実行防止
+  sceneStarted = true;
 
   const uid = user.uid;
   const hostRef = ref(db, `rooms/${roomCode}`);
@@ -56,6 +61,7 @@ onAuthStateChanged(auth, async (user) => {
   // 🔽 認証完了後にフェード開始処理
   startSceneFlow();
 });
+
 async function fetchAndShowPlayers(retry = 0) {
   const playerList = document.getElementById("playerList");
   playerList.innerHTML = "";
