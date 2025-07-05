@@ -34,6 +34,22 @@
       font-size: 24px;
       margin: 10px 0;
     }
+
+    .fill-blank {
+      display: inline-block;
+      background-color: #111;
+      color: white;
+      border: 2px solid white;
+      font-size: 18px;
+      width: 150px;
+      padding: 4px;
+      margin: 2px;
+    }
+
+    .line {
+      margin-bottom: 24px;
+      font-size: 20px;
+    }
   </style>
 </head>
 <body>
@@ -55,27 +71,22 @@
   margin: 0;
 "></ul>
 
-<!-- ✅ テキストボックス（最初は非表示） -->
-<div id="textboxContainer" style="display: none;">
-  <textarea id="bigTextbox" maxlength="1000" rows="10" style="
-    width: 80%;
-    height: 300px;
-    font-size: 24px;
-    font-weight: bold;
-    padding: 20px;
-    display: block;
-    margin: 50px auto;
-    background-color: #111;
-    color: white;
-    border: 3px solid white;
-    box-shadow: 0 0 20px white;
-  "></textarea>
+<!-- ✅ テキストボックスを穴埋めに変更 -->
+<div id="textboxContainer">
+  <div class="line">朝起きると、台所から <input class="fill-blank" maxlength="30" /> の音が聞こえた。</div>
+  <div class="line">食卓にはいつも通り、<input class="fill-blank" maxlength="30" /> が並んでいた。</div>
+  <div class="line">母は笑いながら「<input class="fill-blank" maxlength="30" />」と言った。</div>
+  <div class="line">でも、昨日も全く同じことを言っていた気がした。</div>
+  <div class="line">テレビをつけると、画面には <input class="fill-blank" maxlength="30" /> がずっと映っていた。</div>
+  <div class="line">父が読んでいる新聞の日付が <input class="fill-blank" maxlength="30" /> だった。</div>
+  <div class="line">そして、 <input class="fill-blank" maxlength="30" /> がリビングに降りてきた瞬間、私は黙って立ち上がった。</div>
+  <div class="line">だって、<input class="fill-blank" maxlength="30" /> は、昨日の夜に <input class="fill-blank" maxlength="30" /> から戻ってきていないはずだから。</div>
 </div>
+
 <div id="bottomUI" style="display: none;">
    <img id="readyButton" src="assets/ready_button.png" alt="準備OK" />
   <div id="countdownTimer">10:00</div>
 </div>
-
 
 <script type="module" src="game.js"></script>
 
