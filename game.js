@@ -43,7 +43,6 @@ const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const db = getDatabase(app);
 const auth = getAuth(app);
 
-// ✅ 認証して onDisconnect を再設定
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     await signInAnonymously(auth);
@@ -53,6 +52,9 @@ onAuthStateChanged(auth, async (user) => {
   const uid = user.uid;
   const hostRef = ref(db, `rooms/${roomCode}`);
   await onDisconnect(hostRef).remove();
+
+  // 🔽 認証完了後にフェード開始処理
+  startSceneFlow();
 });
 
 // ✅ タブ離脱時に戻す処理（戻さないなら削除）
@@ -71,7 +73,7 @@ onValue(roomRef, (snapshot) => {
   }
 });
 
-window.addEventListener("DOMContentLoaded", () => {
+function startSceneFlow() {
   const overlay = document.getElementById("fadeOverlay");
   const playerList = document.getElementById("playerList");
   const textboxContainer = document.getElementById("textboxContainer");
@@ -93,19 +95,15 @@ window.addEventListener("DOMContentLoaded", () => {
 
       case 1:
         const actionTitle = document.getElementById("actionTitle");
-        if (actionTitle) actionTitle.remove(); // 🔴 フェード中に「行動順」消す
+        if (actionTitle) actionTitle.remove();
 
-        // 名簿を縮小・左上
         playerList.style.position = "absolute";
         playerList.style.top = "10px";
         playerList.style.left = "10px";
         playerList.style.fontSize = "14px";
         playerList.style.padding = "5px";
 
-        // テキストボックス表示
         textboxContainer.style.display = "block";
-
-        // 明るく戻す
         overlay.style.opacity = "0";
         step = 2;
         break;
@@ -119,8 +117,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
   overlay.addEventListener("transitionend", onTransitionEnd);
 
-  // ✅ 最初のフェードアウト（暗転解除）
+  // ✅ 最初のフェードアウト開始
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
-});
+}
+
