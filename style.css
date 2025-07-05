@@ -110,10 +110,10 @@ html, body {
 }
 
 #readyButton {
-  height: 10px;
-  width: auto;
-  object-fit: contain; /* 画像の内容だけに合わせる */
+  display: block;
+  margin: 0 auto;
 }
+
 
 
 #readyButton:hover {
