@@ -101,3 +101,30 @@ html, body {
   opacity: 0.5;
 }
 
+#bottomUI {
+  margin-top: 20px;
+  text-align: center;
+}
+
+#readyButton {
+  font-size: 20px;
+  padding: 10px 30px;
+  margin-right: 20px;
+  border: none;
+  border-radius: 8px;
+  background-color: #222;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#readyButton:hover {
+  background-color: #444;
+}
+
+#countdownTimer {
+  display: inline-block;
+  font-size: 24px;
+  color: #fff;
+  font-family: monospace;
+}
