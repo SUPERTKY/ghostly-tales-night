@@ -280,4 +280,17 @@ document.addEventListener("click", () => {
     console.warn("音楽の再生に失敗:", e);
   });
 }, { once: true }); // 1回だけ実行
+window.addEventListener("DOMContentLoaded", () => {
+  const overlay = document.getElementById("fadeOverlay2");
+
+  // 少し待ってから透明に（フェードアウト演出）
+  setTimeout(() => {
+    overlay.style.opacity = "0";
+  }, 300); // 300ms程度待ってから開始
+
+  // 終わったら操作可能に
+  overlay.addEventListener("transitionend", () => {
+    overlay.style.pointerEvents = "none";
+  });
+});
 
