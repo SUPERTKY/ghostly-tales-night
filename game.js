@@ -112,22 +112,46 @@ async function fetchAndShowPlayers() {
 window.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("fadeOverlay");
 
-  // 最初のフェードアウト
+  // ステップ管理用フラグ
+  let step = 0;
+
+  // ✅ フェード終了時のイベント
+  const onTransitionEnd = async () => {
+    switch (step) {
+      case 0: // 最初のフェードアウト完了 → 名簿表示
+        overlay.style.pointerEvents = "none";
+        await fetchAndShowPlayers();
+        step = 1;
+
+        // 次のフェードイン（黒くなる）を少し待ってから開始
+        setTimeout(() => {
+          overlay.style.pointerEvents = "auto";
+          overlay.style.opacity = "1"; // フェードイン（暗転）
+        }, 2000);
+        break;
+
+      case 1: // フェードイン完了 → すぐにフェードアウト
+        overlay.style.opacity = "0"; // フェードアウト（明るく）
+        step = 2;
+        break;
+
+      case 2: // フェードアウト完了 → テキストボックス表示
+        overlay.style.pointerEvents = "none";
+
+        // ✅ ここでテキストボックスを表示
+        document.getElementById("textboxContainer").style.display = "block";
+
+        // ✅ 以後、フェード処理は無効化（イベントリスナ削除）
+        overlay.removeEventListener("transitionend", onTransitionEnd);
+        break;
+    }
+  };
+
+  overlay.addEventListener("transitionend", onTransitionEnd);
+
+  // ✅ 最初のフェードアウト開始（ページ読み込み直後）
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
-
-  overlay.addEventListener("transitionend", async () => {
-    overlay.style.pointerEvents = "none";
-
-    // プレイヤー名表示
-    await fetchAndShowPlayers();
-
-    // 🔻3秒待ってテキストボックス表示（フェードインしない）
-    setTimeout(() => {
-      const textboxContainer = document.getElementById("textboxContainer");
-      textboxContainer.style.display = "block";
-    }, 3000);
-  });
 });
 
