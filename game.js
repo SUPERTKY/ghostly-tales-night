@@ -115,13 +115,26 @@ onValue(roomRef, (snapshot) => {
     window.location.href = "index.html";
   }
 });
-
 function startSceneFlow() {
   const overlay = document.getElementById("fadeOverlay");
   const playerList = document.getElementById("playerList");
   const textboxContainer = document.getElementById("textboxContainer");
+  const bottomUI = document.getElementById("bottomUI");
 
   let step = 0;
+  let timerStarted = false;
+  let remainingSeconds = 600;
+
+  const timerDisplay = document.getElementById("countdownTimer");
+  function updateTimer() {
+    const minutes = Math.floor(remainingSeconds / 60);
+    const seconds = remainingSeconds % 60;
+    timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    if (remainingSeconds > 0) {
+      remainingSeconds--;
+      setTimeout(updateTimer, 1000);
+    }
+  }
 
   const onTransitionEnd = async () => {
     switch (step) {
@@ -147,6 +160,14 @@ function startSceneFlow() {
         playerList.style.padding = "5px";
 
         textboxContainer.style.display = "block";
+
+        // ✅ このタイミングでボタンとタイマーを表示＆カウント開始
+        bottomUI.style.display = "flex";
+        if (!timerStarted) {
+          timerStarted = true;
+          updateTimer();
+        }
+
         overlay.style.opacity = "0";
         step = 2;
         break;
@@ -160,11 +181,12 @@ function startSceneFlow() {
 
   overlay.addEventListener("transitionend", onTransitionEnd);
 
-  // ✅ 最初のフェードアウト開始
+  // 最初のフェードアウト開始
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
 }
+
 let remainingSeconds = 600; // 10分
 const timerDisplay = document.getElementById("countdownTimer");
 
