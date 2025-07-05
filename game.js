@@ -109,11 +109,10 @@ async function fetchAndShowPlayers() {
   });
 }
 
-// ✅ フェードアウト完了後にプレイヤー名表示 → 3秒後に再フェードイン＆テキスト表示
 window.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("fadeOverlay");
 
-  // フェードアウト開始
+  // 最初のフェードアウト
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
@@ -121,29 +120,15 @@ window.addEventListener("DOMContentLoaded", () => {
   overlay.addEventListener("transitionend", async () => {
     overlay.style.pointerEvents = "none";
 
-    // プレイヤー表示
+    // プレイヤー名表示
     await fetchAndShowPlayers();
 
-    // 少し待ってから再度フェードイン
+    // 🔻3秒待ってテキストボックス表示（フェードインしない）
     setTimeout(() => {
-      overlay.style.opacity = "1";
-      overlay.style.pointerEvents = "auto";
-    }, 3000); // ← 名簿表示のため3秒待つ
-  });
-
-  // 再フェードイン完了後にテキストボックス表示
-  overlay.addEventListener("transitionend", () => {
-    if (overlay.style.opacity === "1") {
-      // フェードインが終わったとき
       const textboxContainer = document.getElementById("textboxContainer");
       textboxContainer.style.display = "block";
-
-      // フェードアウトしてもう邪魔にならないように
-      setTimeout(() => {
-        overlay.style.opacity = "0";
-        overlay.style.pointerEvents = "none";
-      }, 100); // 軽くフェードアウト
-    }
+    }, 3000);
   });
 });
+
 
