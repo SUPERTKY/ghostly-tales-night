@@ -68,20 +68,17 @@
   <button id="cancelJoin">キャンセル</button>
 </div>
 <audio id="startSound" src="assets/start.mp3" preload="auto"></audio>
-<style>
-#fadeOverlay2 {
+<div id="fadeOverlay2" style="
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   background-color: black;
-  opacity: 1; /* 最初は真っ暗 */
+  opacity: 1;
+  transition: opacity 1.5s;
   pointer-events: auto;
-  transition: opacity 1.5s ease;
-  z-index: 9998; /* 通常のfadeOverlayより下でも上でもOK */
-}
-</style>
+  z-index: 9998;
+"></div>
+
 
 
 <div id="fadeOverlay" style="
