@@ -249,15 +249,34 @@ function triggerStoryOutput() {
   if (storyAlreadyOutput) return;
   storyAlreadyOutput = true;
 
+  const overlay = document.getElementById("fadeOverlay");
   const container = document.getElementById("textboxContainer");
-  const story = generateStoryTemplate();
+  const bottomUI = document.getElementById("bottomUI");
+  const playerList = document.getElementById("playerList");
 
-  container.innerHTML = `
-    <h2 style="font-size: 28px; margin-bottom: 20px;">あなたの怪談を完成させましょう</h2>
-    <div id="storyTemplate">${story}</div>
-  `;
+  // フェードイン（暗転）
+  overlay.style.pointerEvents = "auto";
+  overlay.style.opacity = "1";
 
-  container.style.display = "block";
-  window.scrollTo({ top: container.offsetTop, behavior: 'smooth' });
+  overlay.addEventListener("transitionend", function handleFadeIn() {
+    overlay.removeEventListener("transitionend", handleFadeIn);
+
+    // すべて非表示に
+    container.style.display = "none";
+    bottomUI.style.display = "none";
+    playerList.style.display = "none";
+
+    // フェードアウト（真っ暗→何もない画面へ）
+    setTimeout(() => {
+      overlay.style.opacity = "0";
+      overlay.addEventListener("transitionend", function handleFadeOut() {
+        overlay.removeEventListener("transitionend", handleFadeOut);
+        overlay.style.pointerEvents = "none";
+
+        // 👇必要ならここに後で詳細処理を追加
+      });
+    }, 1000); // ちょっとだけ黒いまま待つ
+  });
 }
+
 
