@@ -41,13 +41,21 @@
   <!-- フェードオーバーレイ -->
   <div id="fadeOverlay"></div>
 
+<!-- ✅ 見出し -->
+<h2 id="actionTitle" style="
+  font-size: 28px;
+  margin: 20px;
+">行動順</h2>
+
+<!-- ✅ プレイヤー名簿 -->
 <ul id="playerList" style="
   list-style: none;
   font-size: 24px;
   padding: 20px;
   margin: 0;
-" ></ul>
+"></ul>
 
+<!-- ✅ テキストボックス（最初は非表示） -->
 <div id="textboxContainer" style="display: none;">
   <textarea id="bigTextbox" maxlength="1000" rows="10" style="
     width: 80%;
@@ -63,10 +71,6 @@
     box-shadow: 0 0 20px white;
   "></textarea>
 </div>
-
-
-  <h1>行動順</h1>
-  <ul id="playerList"></ul>
 
 <script type="module" src="game.js"></script>
 
