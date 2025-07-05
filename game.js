@@ -200,7 +200,7 @@ const storyTemplate = document.getElementById("storyTemplate");
 storyTemplate.innerHTML = generateStoryTemplate();
 textboxContainer.style.display = "block";
 
-        textboxContainer.style.display = "none"; // ✅ テキストボックスは使わないので非表示
+
         bottomUI.style.display = "flex";         // ✅ ボタンとタイマーを表示
 
         startCountdown(); // ✅ タイマー開始
