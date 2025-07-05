@@ -150,9 +150,13 @@ function generateStoryTemplate() {
   ];
 
   const selected = templates[Math.floor(Math.random() * templates.length)];
-  return selected.replace(/\[(\d+)\]/g, (_, limit) => {
-    return `<input type="text" maxlength="${limit}" style="width: ${limit * 10}px;" />`;
-  });
+
+  return selected
+    .split("<br>")
+    .map(line => `<div class="line">${line.replace(/\[(\d+)\]/g, (_, limit) =>
+      `<input type="text" class="fill-blank" maxlength="${limit}" />`
+    )}</div>`)
+    .join("");
 }
 
 function startSceneFlow() {
