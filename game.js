@@ -253,6 +253,7 @@ function triggerStoryOutput() {
   const container = document.getElementById("textboxContainer");
   const bottomUI = document.getElementById("bottomUI");
   const playerList = document.getElementById("playerList");
+  const videoGrid = document.getElementById("videoGrid");
 
   // フェードイン（暗転）
   overlay.style.pointerEvents = "auto";
@@ -261,22 +262,47 @@ function triggerStoryOutput() {
   overlay.addEventListener("transitionend", function handleFadeIn() {
     overlay.removeEventListener("transitionend", handleFadeIn);
 
-    // すべて非表示に
+    // UIをすべて非表示に
     container.style.display = "none";
     bottomUI.style.display = "none";
     playerList.style.display = "none";
 
-    // フェードアウト（真っ暗→何もない画面へ）
+    // 少し待ってフェードアウト（暗転解除）
     setTimeout(() => {
       overlay.style.opacity = "0";
-      overlay.addEventListener("transitionend", function handleFadeOut() {
+
+      overlay.addEventListener("transitionend", async function handleFadeOut() {
         overlay.removeEventListener("transitionend", handleFadeOut);
         overlay.style.pointerEvents = "none";
 
-        // 👇必要ならここに後で詳細処理を追加
+        // ✅ カメラをスタート
+        videoGrid.style.display = "flex";
+        await startCameraForCurrentUser(); // 👈 この関数を次で定義
       });
-    }, 1000); // ちょっとだけ黒いまま待つ
+    }, 1000);
   });
 }
+async function startCameraForCurrentUser() {
+  const videoGrid = document.getElementById("videoGrid");
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+
+    const video = document.createElement("video");
+    video.srcObject = stream;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.muted = true; // 自分の映像はミュート
+    video.style.width = "200px";
+    video.style.margin = "10px";
+    video.style.border = "2px solid white";
+
+    videoGrid.appendChild(video);
+  } catch (err) {
+    console.error("カメラの取得に失敗しました:", err);
+    alert("カメラにアクセスできませんでした");
+  }
+}
+
 
 
