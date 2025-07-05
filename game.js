@@ -113,6 +113,7 @@ window.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("fadeOverlay");
   const playerList = document.getElementById("playerList");
   const textboxContainer = document.getElementById("textboxContainer");
+  const actionTitle = document.getElementById("actionTitle");
 
   let step = 0;
 
@@ -123,29 +124,33 @@ window.addEventListener("DOMContentLoaded", () => {
         await fetchAndShowPlayers();
         step = 1;
 
-        // 次のフェードインへ
+        // 次のフェードインへ（2〜3秒後）
         setTimeout(() => {
           overlay.style.pointerEvents = "auto";
           overlay.style.opacity = "1"; // フェードイン
         }, 3000);
         break;
 
-      case 1: // フェードイン完了 → 名簿縮小＋テキストボックス表示 → フェードアウト
-        // 🔻 名簿を左上に縮小配置
+      case 1: // フェードイン完了 → 縮小 + テキスト表示 + タイトル削除
+        // ✅ 行動順の見出し削除
+        if (actionTitle) actionTitle.remove();
+
+        // ✅ 名簿を縮小して左上に配置
         playerList.style.position = "absolute";
         playerList.style.top = "10px";
         playerList.style.left = "10px";
         playerList.style.fontSize = "14px";
+        playerList.style.padding = "5px";
 
-        // 🔻 テキストボックス表示（フェード中に）
+        // ✅ テキストボックス表示
         textboxContainer.style.display = "block";
 
-        // すぐにフェードアウト
+        // ✅ フェードアウト（明るく）
         overlay.style.opacity = "0";
         step = 2;
         break;
 
-      case 2: // 最終フェードアウト → 完全に終了
+      case 2: // 完了後、イベントリスナ削除
         overlay.style.pointerEvents = "none";
         overlay.removeEventListener("transitionend", onTransitionEnd);
         break;
@@ -154,7 +159,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
   overlay.addEventListener("transitionend", onTransitionEnd);
 
-  // 🔻 最初のフェードアウト（暗転解除）
+  // ✅ 最初のフェードアウト
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
