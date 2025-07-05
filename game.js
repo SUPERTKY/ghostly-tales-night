@@ -6,9 +6,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
-  getDatabase, ref, get, set, onValue, onDisconnect, push // ← ✅ pushを追加
+  getDatabase, ref, get, set, onValue, onDisconnect, push
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
-
 
 import {
   getAuth, signInAnonymously, onAuthStateChanged
@@ -60,44 +59,6 @@ onAuthStateChanged(auth, async (user) => {
   startSceneFlow();
 });
 
-async function fetchAndShowPlayers(retry = 0) {
-  const playerList = document.getElementById("playerList");
-  playerList.innerHTML = "";
-
-  const roomRef = ref(db, `rooms/${roomCode}`);
-  const roomSnap = await get(roomRef);
-  if (!roomSnap.exists()) {
-    if (retry < 5) {
-      setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
-    } else {
-      alert("ルームが見つかりませんでした（タイムアウト）");
-      window.location.href = "index.html";
-    }
-    return;
-  }
-
-  const playersRef = ref(db, `rooms/${roomCode}/players`);
-  const playersSnap = await get(playersRef);
-  if (!playersSnap.exists()) {
-    if (retry < 5) {
-      setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
-    } else {
-      alert("プレイヤー情報が見つかりませんでした（タイムアウト）");
-      window.location.href = "index.html";
-    }
-    return;
-  }
-
-  const players = playersSnap.val();
-  const shuffled = Object.values(players).sort(() => Math.random() - 0.5);
-
-  shuffled.forEach((player, index) => {
-    const li = document.createElement("li");
-    li.textContent = `${index + 1}. ${player.name || "名無し"}`;
-    playerList.appendChild(li);
-  });
-}
-
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
     window.location.href = "index.html";
@@ -124,45 +85,12 @@ function startCountdown() {
     timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
 
     if (remainingSeconds <= 0) {
-  clearInterval(timerInterval);
-  triggerStoryOutput(); // ✅ タイマーがゼロで出力
-}
- else {
+      clearInterval(timerInterval);
+      triggerStoryOutput();
+    } else {
       remainingSeconds--;
     }
   }, 1000);
-}
-function generateStoryTemplate() {
-  const COMMON_LENGTH = 20; // 全入力欄に適用する文字数制限
-
-  const templates = [
-    `朝起きると、台所から[blank]の音が聞こえた。<br>
-     食卓にはいつも通り、[blank]が並んでいた。<br>
-     母は笑いながら「[blank]」と言った。<br>
-     でも、昨日も全く同じことを言っていた気がした。<br>
-     テレビをつけると、画面には[blank]がずっと映っていた。<br>
-     父が読んでいる新聞の日付が[blank]だった。<br>
-     そして、[blank]がリビングに降りてきた瞬間、私は黙って立ち上がった。<br>
-     だって、[blank]は、昨日の夜に[blank]から戻ってきていないはずだから。`,
-
-    `深夜、部屋の窓の外に[blank]が立っていた。<br>
-     なぜか手には[blank]を持っている。<br>
-     スマホを見ると、通知には「[blank]」とだけ書かれたメッセージ。<br>
-     時計の針は[blank]を指していた。<br>
-     階下からは[blank]の音。<br>
-     [blank]の名前を呼ぶ声が聞こえるが、そんな人は家にいない。`
-  ];
-
-  const selected = templates[Math.floor(Math.random() * templates.length)];
-
-  return selected
-    .split("<br>")
-    .map(line =>
-      `<div class="line">${line.replace(/\[blank\]/g, () =>
-        `<input type="text" class="fill-blank" maxlength="${COMMON_LENGTH}" />`
-      )}</div>`
-    )
-    .join("");
 }
 
 function startSceneFlow() {
@@ -188,45 +116,34 @@ function startSceneFlow() {
         break;
 
       case 1:
-        const actionTitle = document.getElementById("actionTitle");
-        if (actionTitle) actionTitle.remove();
-
         playerList.style.position = "absolute";
         playerList.style.top = "10px";
         playerList.style.left = "10px";
         playerList.style.fontSize = "14px";
         playerList.style.padding = "5px";
-      // ★ テキストテンプレートを挿入
-const storyTemplate = document.getElementById("storyTemplate");
-storyTemplate.innerHTML = generateStoryTemplate();
-textboxContainer.style.display = "block";
 
+        textboxContainer.style.display = "block";
+        bottomUI.style.display = "flex";
+        startCountdown();
 
-        bottomUI.style.display = "flex";         // ✅ ボタンとタイマーを表示
-
-        startCountdown(); // ✅ タイマー開始
-
-        // ✅ 「準備OK」ボタン処理
         readyButton.addEventListener("click", async () => {
           const uid = auth.currentUser?.uid;
           if (!uid) return;
-
           await set(ref(db, `rooms/${roomCode}/players/${uid}/ready`), true);
           readyButton.classList.add("disabled");
         });
 
-        // ✅ 準備完了を監視（全員readyなら出力）
         onValue(ref(db, `rooms/${roomCode}/players`), (snapshot) => {
           const players = snapshot.val();
           if (!players) return;
 
           const allReady = Object.values(players).every(p => p.ready);
           if (allReady) {
-            triggerStoryOutput(); // ✅ 出力処理を呼び出し
+            triggerStoryOutput();
           }
         });
 
-        overlay.style.opacity = "0"; // ✅ フェードアウトして表示開始
+        overlay.style.opacity = "0";
         step = 2;
         break;
 
@@ -239,7 +156,6 @@ textboxContainer.style.display = "block";
 
   overlay.addEventListener("transitionend", onTransitionEnd);
 
-  // 最初のフェードイン解除
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
@@ -256,60 +172,31 @@ async function triggerStoryOutput() {
   const playerList = document.getElementById("playerList");
   const videoGrid = document.getElementById("videoGrid");
 
-  // フェードイン（暗転）
   overlay.style.pointerEvents = "auto";
   overlay.style.opacity = "1";
 
   overlay.addEventListener("transitionend", function handleFadeIn() {
     overlay.removeEventListener("transitionend", handleFadeIn);
-
-    // UIをすべて非表示に
     container.style.display = "none";
     bottomUI.style.display = "none";
     playerList.style.display = "none";
 
-    // 少し待ってフェードアウト（暗転解除）
     setTimeout(() => {
       overlay.style.opacity = "0";
-
       overlay.addEventListener("transitionend", async function handleFadeOut() {
         overlay.removeEventListener("transitionend", handleFadeOut);
         overlay.style.pointerEvents = "none";
-
-        // ✅ カメラをスタート
         videoGrid.style.display = "flex";
-        await startCameraForCurrentUser(); // 👈 この関数を次で定義
+        await startCameraAndConnect();
       });
     }, 1000);
   });
-  await startCameraAndConnect(); // ← これで全員分の映像を表示する
-
 }
-async function startCameraForCurrentUser() {
-  const videoGrid = document.getElementById("videoGrid");
 
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-
-    const video = document.createElement("video");
-    video.srcObject = stream;
-    video.autoplay = true;
-    video.playsInline = true;
-    video.muted = true; // 自分の映像はミュート
-    video.style.width = "200px";
-    video.style.margin = "10px";
-    video.style.border = "2px solid white";
-
-    videoGrid.appendChild(video);
-  } catch (err) {
-    console.error("カメラの取得に失敗しました:", err);
-    alert("カメラにアクセスできませんでした");
-  }
-}
-const peerConnections = {}; // uidごとにRTCPeerConnectionを保存
+const peerConnections = {};
 let localStream = null;
+
 async function startCameraAndConnect() {
-  // ✅ まずカメラを取得
   localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
 
   const video = document.createElement("video");
@@ -322,7 +209,6 @@ async function startCameraAndConnect() {
 
   document.getElementById("videoGrid").appendChild(video);
 
-  // ✅ 他プレイヤーの一覧を取得して接続開始
   const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
   const players = playersSnap.val();
   const myUID = auth.currentUser.uid;
@@ -332,9 +218,9 @@ async function startCameraAndConnect() {
     createConnectionWith(uid);
   }
 
-  // ✅ シグナリングを監視
   listenForSignals();
 }
+
 async function createConnectionWith(remoteUID) {
   const pc = new RTCPeerConnection();
 
@@ -356,19 +242,21 @@ async function createConnectionWith(remoteUID) {
     if (event.candidate) {
       const signalRef = ref(db, `rooms/${roomCode}/signals/${auth.currentUser.uid}/${remoteUID}/candidates`);
       const newRef = push(signalRef);
-      set(newRef, event.candidate.toJSON());
+      set(newRef, event.candidate);
     }
   };
 
-  // ✅ Offerを作って送信
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
 
- await set(ref(db, `rooms/${roomCode}/signals/${auth.currentUser.uid}/${remoteUID}/offer`), offer);
-
+  await set(ref(db, `rooms/${roomCode}/signals/${auth.currentUser.uid}/${remoteUID}/offer`), {
+    type: offer.type,
+    sdp: offer.sdp
+  });
 
   peerConnections[remoteUID] = pc;
 }
+
 function listenForSignals() {
   const myUID = auth.currentUser.uid;
   const signalsRef = ref(db, `rooms/${roomCode}/signals`);
@@ -406,7 +294,7 @@ function listenForSignals() {
           if (event.candidate) {
             const signalRef = ref(db, `rooms/${roomCode}/signals/${myUID}/${fromUID}/candidates`);
             const newRef = push(signalRef);
-            set(newRef, event.candidate.toJSON());
+            set(newRef, event.candidate);
           }
         };
       }
@@ -416,7 +304,10 @@ function listenForSignals() {
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
 
-        await set(ref(db, `rooms/${roomCode}/signals/${myUID}/${fromUID}/answer`), answer.toJSON());
+        await set(ref(db, `rooms/${roomCode}/signals/${myUID}/${fromUID}/answer`), {
+          type: answer.type,
+          sdp: answer.sdp
+        });
       }
 
       if (signal.answer && pc.signalingState !== "stable") {
@@ -436,5 +327,38 @@ function listenForSignals() {
   });
 }
 
+async function fetchAndShowPlayers(retry = 0) {
+  const playerList = document.getElementById("playerList");
+  playerList.innerHTML = "";
 
+  const roomSnap = await get(ref(db, `rooms/${roomCode}`));
+  if (!roomSnap.exists()) {
+    if (retry < 5) {
+      setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
+    } else {
+      alert("ルームが見つかりませんでした（タイムアウト）");
+      window.location.href = "index.html";
+    }
+    return;
+  }
 
+  const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
+  if (!playersSnap.exists()) {
+    if (retry < 5) {
+      setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
+    } else {
+      alert("プレイヤー情報が見つかりませんでした（タイムアウト）");
+      window.location.href = "index.html";
+    }
+    return;
+  }
+
+  const players = playersSnap.val();
+  const shuffled = Object.values(players).sort(() => Math.random() - 0.5);
+
+  shuffled.forEach((player, index) => {
+    const li = document.createElement("li");
+    li.textContent = `${index + 1}. ${player.name || "名無し"}`;
+    playerList.appendChild(li);
+  });
+}
