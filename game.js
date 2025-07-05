@@ -165,4 +165,18 @@ function startSceneFlow() {
     overlay.style.opacity = "0";
   }, 100);
 }
+let remainingSeconds = 600; // 10分
+const timerDisplay = document.getElementById("countdownTimer");
+
+function updateTimer() {
+  const minutes = Math.floor(remainingSeconds / 60);
+  const seconds = remainingSeconds % 60;
+  timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  if (remainingSeconds > 0) {
+    remainingSeconds--;
+    setTimeout(updateTimer, 1000);
+  }
+}
+
+updateTimer();
 
