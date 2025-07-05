@@ -122,9 +122,8 @@ async function createRoomAndJoin(uid) {
   });
 
   // ✅ 🔥ここでonDisconnect設定（正しいタイミング）
-  const hostRef = ref(db, `rooms/${roomCode}`);
-  // onDisconnect 削除 → game開始前にはキャンセル
-await onDisconnect(hostRef).cancel();
+const hostRef = ref(db, `rooms/${roomCode}`);
+await onDisconnect(hostRef).remove();  // ← 削除予約をここでセットする（←これが重要！）
 
 
   // ✅ ルーム削除監視（全員）
@@ -257,14 +256,14 @@ startBtn.addEventListener("click", async () => {
   const sound = document.getElementById("startSound");
   sound.play();
 
-  // ✅ 🔥 onDisconnect の削除予約をキャンセル
+  // ✅ 🔥 ゲーム開始前に削除予約をキャンセルする
   const hostRef = ref(db, `rooms/${currentRoomCode}`);
-  await onDisconnect(hostRef).cancel();  // 🔥 これが重要
+  await onDisconnect(hostRef).cancel();  // ← ここでだけキャンセル！
 
   // ✅ ステータスを "started" に変更
   await set(ref(db, `rooms/${currentRoomCode}/status`), "started");
 
-  // ✅ 少し遅らせてから遷移（音が鳴り終わる＋フェード演出など）
+  // ✅ 少し遅らせてから遷移
   const overlay = document.getElementById("fadeOverlay");
   overlay.style.opacity = "1";
 
@@ -272,6 +271,7 @@ startBtn.addEventListener("click", async () => {
     window.location.href = `game.html?roomCode=${currentRoomCode}`;
   }, 1500);
 });
+
 const bgm = document.getElementById("bgm");
 
 // ページロード後、ユーザーのクリックなどで再生を保証
