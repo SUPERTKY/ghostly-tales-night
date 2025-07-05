@@ -241,12 +241,19 @@ textboxContainer.style.display = "block";
 }
 
 let storyAlreadyOutput = false;
-
 function triggerStoryOutput() {
   if (storyAlreadyOutput) return;
   storyAlreadyOutput = true;
 
-  console.log("★ ストーリー回答を出力するタイミングです（まだ未実装）");
+  const container = document.getElementById("textboxContainer");
+  const story = generateStoryTemplate();
 
-  // 例：あとでここに回答取得→保存など追加できる
+  container.innerHTML = `
+    <h2 style="font-size: 28px; margin-bottom: 20px;">あなたの怪談を完成させましょう</h2>
+    <div id="storyTemplate">${story}</div>
+  `;
+
+  container.style.display = "block";
+  window.scrollTo({ top: container.offsetTop, behavior: 'smooth' });
 }
+
