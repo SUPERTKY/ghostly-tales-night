@@ -56,6 +56,43 @@ onAuthStateChanged(auth, async (user) => {
   // 🔽 認証完了後にフェード開始処理
   startSceneFlow();
 });
+async function fetchAndShowPlayers(retry = 0) {
+  const playerList = document.getElementById("playerList");
+  playerList.innerHTML = "";
+
+  const roomRef = ref(db, `rooms/${roomCode}`);
+  const roomSnap = await get(roomRef);
+  if (!roomSnap.exists()) {
+    if (retry < 5) {
+      setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
+    } else {
+      alert("ルームが見つかりませんでした（タイムアウト）");
+      window.location.href = "index.html";
+    }
+    return;
+  }
+
+  const playersRef = ref(db, `rooms/${roomCode}/players`);
+  const playersSnap = await get(playersRef);
+  if (!playersSnap.exists()) {
+    if (retry < 5) {
+      setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
+    } else {
+      alert("プレイヤー情報が見つかりませんでした（タイムアウト）");
+      window.location.href = "index.html";
+    }
+    return;
+  }
+
+  const players = playersSnap.val();
+  const shuffled = Object.values(players).sort(() => Math.random() - 0.5);
+
+  shuffled.forEach((player, index) => {
+    const li = document.createElement("li");
+    li.textContent = `${index + 1}. ${player.name || "名無し"}`;
+    playerList.appendChild(li);
+  });
+}
 
 // ✅ タブ離脱時に戻す処理（戻さないなら削除）
 document.addEventListener("visibilitychange", () => {
