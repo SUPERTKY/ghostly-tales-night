@@ -281,16 +281,3 @@ document.addEventListener("click", () => {
   });
 }, { once: true }); // 1回だけ実行
 
-window.addEventListener("DOMContentLoaded", () => {
-  const overlay = document.getElementById("fadeOverlay");
-
-  // フェードアウト開始（例: 100ms後）
-  setTimeout(() => {
-    overlay.style.opacity = "0";
-  }, 100);
-
-  // 完全に透明になったらポインターイベントを無効化
-  overlay.addEventListener("transitionend", () => {
-    overlay.style.pointerEvents = "none";
-  });
-});
