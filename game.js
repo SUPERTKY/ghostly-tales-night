@@ -186,6 +186,10 @@ function startSceneFlow() {
         playerList.style.left = "10px";
         playerList.style.fontSize = "14px";
         playerList.style.padding = "5px";
+      // ★ テキストテンプレートを挿入
+const storyTemplate = document.getElementById("storyTemplate");
+storyTemplate.innerHTML = generateStoryTemplate();
+textboxContainer.style.display = "block";
 
         textboxContainer.style.display = "none"; // ✅ テキストボックスは使わないので非表示
         bottomUI.style.display = "flex";         // ✅ ボタンとタイマーを表示
