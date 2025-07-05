@@ -41,11 +41,27 @@
   <!-- フェードオーバーレイ -->
   <div id="fadeOverlay"></div>
 
-<ul id="playerList"></ul>
+<ul id="playerList" style="
+  list-style: none;
+  font-size: 24px;
+  padding: 20px;
+  margin: 0;
+" ></ul>
 
-<!-- このテキストボックスは初めは非表示 -->
-<div id="textboxContainer" style="display: none; margin-top: 20px;">
-  <textarea id="bigTextbox" maxlength="1000" rows="10" cols="50" style="width: 100%; font-size: 16px;"></textarea>
+<div id="textboxContainer" style="display: none;">
+  <textarea id="bigTextbox" maxlength="1000" rows="10" style="
+    width: 80%;
+    height: 300px;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 20px;
+    display: block;
+    margin: 50px auto;
+    background-color: #111;
+    color: white;
+    border: 3px solid white;
+    box-shadow: 0 0 20px white;
+  "></textarea>
 </div>
 
 
