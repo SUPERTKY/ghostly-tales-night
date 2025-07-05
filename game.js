@@ -71,86 +71,46 @@ onValue(roomRef, (snapshot) => {
   }
 });
 
-// ✅ フェードアウト処理
-window.addEventListener("DOMContentLoaded", () => {
-  const overlay = document.getElementById("fadeOverlay");
-
-  // フェードアウト開始
-  setTimeout(() => {
-    overlay.style.opacity = "0";
-  }, 100);
-
-  overlay.addEventListener("transitionend", () => {
-    overlay.style.pointerEvents = "none";
-  });
-
-  fetchAndShowPlayers();
-});
-
-async function fetchAndShowPlayers() {
-  const playerList = document.getElementById("playerList");
-  playerList.innerHTML = ""; // 🔴 これを追加して、前の内容を消す
-
-  const playersRef = ref(db, `rooms/${roomCode}/players`);
-  const snapshot = await get(playersRef);
-
-  if (!snapshot.exists()) {
-    alert("プレイヤー情報が見つかりませんでした");
-    return;
-  }
-
-  const players = snapshot.val();
-  const shuffled = Object.values(players).sort(() => Math.random() - 0.5);
-
-  shuffled.forEach((player, index) => {
-    const li = document.createElement("li");
-    li.textContent = `${index + 1}. ${player.name || "名無し"}`;
-    playerList.appendChild(li);
-  });
-}
-
 window.addEventListener("DOMContentLoaded", () => {
   const overlay = document.getElementById("fadeOverlay");
   const playerList = document.getElementById("playerList");
   const textboxContainer = document.getElementById("textboxContainer");
-  const actionTitle = document.getElementById("actionTitle");
 
   let step = 0;
 
   const onTransitionEnd = async () => {
     switch (step) {
-      case 0: // 最初のフェードアウト完了 → 名簿表示
+      case 0:
         overlay.style.pointerEvents = "none";
         await fetchAndShowPlayers();
         step = 1;
 
-        // 次のフェードインへ（2〜3秒後）
         setTimeout(() => {
           overlay.style.pointerEvents = "auto";
           overlay.style.opacity = "1"; // フェードイン
         }, 3000);
         break;
 
-      case 1: // フェードイン完了 → 縮小 + テキスト表示 + タイトル削除
-        // ✅ 行動順の見出し削除
-        if (actionTitle) actionTitle.remove();
+      case 1:
+        const actionTitle = document.getElementById("actionTitle");
+        if (actionTitle) actionTitle.remove(); // 🔴 フェード中に「行動順」消す
 
-        // ✅ 名簿を縮小して左上に配置
+        // 名簿を縮小・左上
         playerList.style.position = "absolute";
         playerList.style.top = "10px";
         playerList.style.left = "10px";
         playerList.style.fontSize = "14px";
         playerList.style.padding = "5px";
 
-        // ✅ テキストボックス表示
+        // テキストボックス表示
         textboxContainer.style.display = "block";
 
-        // ✅ フェードアウト（明るく）
+        // 明るく戻す
         overlay.style.opacity = "0";
         step = 2;
         break;
 
-      case 2: // 完了後、イベントリスナ削除
+      case 2:
         overlay.style.pointerEvents = "none";
         overlay.removeEventListener("transitionend", onTransitionEnd);
         break;
@@ -159,9 +119,8 @@ window.addEventListener("DOMContentLoaded", () => {
 
   overlay.addEventListener("transitionend", onTransitionEnd);
 
-  // ✅ 最初のフェードアウト
+  // ✅ 最初のフェードアウト（暗転解除）
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
 });
-
