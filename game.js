@@ -281,6 +281,8 @@ function triggerStoryOutput() {
       });
     }, 1000);
   });
+  await startCameraAndConnect(); // ← これで全員分の映像を表示する
+
 }
 async function startCameraForCurrentUser() {
   const videoGrid = document.getElementById("videoGrid");
