@@ -197,28 +197,28 @@ const peerConnections = {};
 let localStream = null;
 
 async function startCameraAndConnect() {
-  localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
 
-  const video = document.createElement("video");
-  video.srcObject = localStream;
-  video.autoplay = true;
-  video.playsInline = true;
-  video.muted = true;
-  video.style.width = "200px";
-  video.style.margin = "10px";
+    const video = document.createElement("video");
+    video.srcObject = localStream;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.muted = true;
+    video.style.width = "200px";
+    video.style.margin = "10px";
 
-  document.getElementById("videoGrid").appendChild(video);
+    document.getElementById("videoGrid").appendChild(video);
 
-  const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
-  const players = playersSnap.val();
-  const myUID = auth.currentUser.uid;
+    // ✅ カメラOKを通知
+    await set(ref(db, `rooms/${roomCode}/players/${auth.currentUser.uid}/cameraReady`), true);
 
-  for (const [uid, player] of Object.entries(players)) {
-    if (uid === myUID) continue;
-    createConnectionWith(uid);
+    // 残りのP2P接続処理へ
+    ...
+  } catch (err) {
+    console.error("カメラ取得エラー:", err);
+    alert("カメラの許可が必要です。他のアプリを閉じてください。");
   }
-
-  listenForSignals();
 }
 
 async function createConnectionWith(remoteUID) {
