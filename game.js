@@ -6,8 +6,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 
 import {
-  getDatabase, ref, get, set, onValue, onDisconnect
+  getDatabase, ref, get, set, onValue, onDisconnect, push // ← ✅ pushを追加
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
 
 import {
   getAuth, signInAnonymously, onAuthStateChanged
@@ -363,7 +364,8 @@ async function createConnectionWith(remoteUID) {
   const offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
 
-  await set(ref(db, `rooms/${roomCode}/signals/${auth.currentUser.uid}/${remoteUID}/offer`), offer.toJSON());
+ await set(ref(db, `rooms/${roomCode}/signals/${auth.currentUser.uid}/${remoteUID}/offer`), offer);
+
 
   peerConnections[remoteUID] = pc;
 }
