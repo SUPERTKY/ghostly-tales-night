@@ -45,45 +45,148 @@ let currentUserId = null;
 let isCleaningUp = false;
 let isPageUnloading = false;
 
-// 🔧 新規追加：既存セッションクリーンアップ関数
-async function cleanupExistingSession(uid) {
+// 🔧 修正版：スマートなセッションクリーンアップ（プレイヤー情報は保持）
+async function smartCleanupSession(uid) {
   try {
-    console.log("🧹 既存セッションをクリーンアップ中...");
+    console.log("🔍 セッション状態を確認中...");
     
-    // 1. プレイヤー情報の削除
+    // 1. 現在のプレイヤー情報を確認
     const playerRef = ref(db, `rooms/${roomCode}/players/${uid}`);
     const playerSnap = await get(playerRef);
-    if (playerSnap.exists()) {
-      await set(playerRef, null);
-      console.log("👤 既存プレイヤー情報を削除しました");
+    
+    if (!playerSnap.exists()) {
+      console.log("✅ クリーンアップ不要：プレイヤー情報なし");
+      return;
     }
+    
+    const playerData = playerSnap.val();
+    const now = Date.now();
+    
+    // 2. セッションが古いかどうかを判定
+    const sessionAge = now - (playerData.joinedAt || 0);
+    const isOldSession = sessionAge > 30000; // 30秒以上前のセッション
+    
+    // 3. 重複セッションの検出
+    const isDuplicateSession = await detectDuplicateSession(uid);
+    
+    // 4. 削除条件の判定
+    const shouldCleanup = isOldSession || isDuplicateSession;
+    
+    if (!shouldCleanup) {
+      console.log("✅ クリーンアップ不要：有効なセッション");
+      return;
+    }
+    
+    console.log("🧹 古いシグナリング情報のみ削除中...");
+    
+    // 5. 古いシグナリング情報のみ削除（プレイヤー情報は保持）
+    await cleanupOldSignalingData(uid);
+    
+    console.log("✅ 古いシグナリング情報クリーンアップ完了");
+    
+  } catch (error) {
+    console.error("セッションクリーンアップエラー:", error);
+  }
+}
 
-    // 2. シグナリング情報の削除
+// 重複セッション検出関数
+async function detectDuplicateSession(uid) {
+  try {
+    // プレイヤーの最終アクティブ時間をチェック
+    const playerRef = ref(db, `rooms/${roomCode}/players/${uid}`);
+    const playerSnap = await get(playerRef);
+    
+    if (!playerSnap.exists()) {
+      return false;
+    }
+    
+    const playerData = playerSnap.val();
+    const lastSeen = playerData.lastSeen || 0;
+    const timeSinceLastSeen = Date.now() - lastSeen;
+    
+    // 5分以上非アクティブなら古いセッションとみなす
+    return timeSinceLastSeen > 300000;
+    
+  } catch (error) {
+    console.error("重複セッション検出エラー:", error);
+    return false;
+  }
+}
+
+// 古いシグナリングデータのみを削除
+async function cleanupOldSignalingData(uid) {
+  try {
+    // シグナリング情報の削除（これは削除してOK）
     const signalRef = ref(db, `rooms/${roomCode}/signals/${uid}`);
     const signalSnap = await get(signalRef);
     if (signalSnap.exists()) {
       await set(signalRef, null);
-      console.log("📡 既存シグナリング情報を削除しました");
+      console.log("📡 古いシグナリング情報を削除しました");
     }
 
-    // 3. 他のプレイヤーからのシグナリング情報も削除
+    // 他のプレイヤーからのシグナリング情報も削除
     const allSignalsSnap = await get(ref(db, `rooms/${roomCode}/signals`));
     if (allSignalsSnap.exists()) {
       const allSignals = allSignalsSnap.val();
       for (const [fromUID, toMap] of Object.entries(allSignals)) {
         if (toMap && toMap[uid]) {
           await set(ref(db, `rooms/${roomCode}/signals/${fromUID}/${uid}`), null);
-          console.log(`📡 ${fromUID}からのシグナリング情報を削除しました`);
+          console.log(`📡 ${fromUID}からの古いシグナリング情報を削除しました`);
         }
       }
     }
-
-    // 4. 少し待機（Firebase側の反映待ち）
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // ⚠️ 重要：プレイヤー情報は削除しない！
     
   } catch (error) {
-    console.error("セッションクリーンアップエラー:", error);
+    console.error("古いシグナリングデータ削除エラー:", error);
   }
+}
+
+// 🔧 新規追加：プレイヤー情報の適切な更新
+async function updatePlayerInfo(uid) {
+  try {
+    console.log("👤 プレイヤー情報を更新中...");
+    
+    const playerRef = ref(db, `rooms/${roomCode}/players/${uid}`);
+    
+    // 現在のプレイヤー情報を取得
+    const playerSnap = await get(playerRef);
+    let playerData = {};
+    
+    if (playerSnap.exists()) {
+      // 既存の情報を保持
+      playerData = playerSnap.val();
+      console.log("📝 既存のプレイヤー情報を保持");
+    } else {
+      // 新規プレイヤーの場合、基本情報を設定
+      playerData = {
+        name: `プレイヤー${Math.floor(Math.random() * 1000)}`,
+      };
+      console.log("🆕 新規プレイヤー情報を作成");
+    }
+    
+    // セッション情報を更新
+    const updatedPlayerData = {
+      ...playerData,
+      joinedAt: Date.now(),
+      lastSeen: Date.now(),
+      sessionId: generateSessionId(),
+      status: 'online',
+      ready: false // readyステートをリセット
+    };
+    
+    await set(playerRef, updatedPlayerData);
+    console.log("✅ プレイヤー情報更新完了");
+    
+  } catch (error) {
+    console.error("プレイヤー情報更新エラー:", error);
+  }
+}
+
+// セッションID生成
+function generateSessionId() {
+  return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
 // 🔧 新規追加：WebRTC接続のクリーンアップ関数
@@ -136,9 +239,9 @@ async function gracefulShutdown() {
     // 1. WebRTC接続のクリーンアップ
     await cleanupWebRTCConnections();
     
-    // 2. Firebase接続のクリーンアップ
+    // 2. シグナリング情報のクリーンアップ（プレイヤー情報は保持）
     if (currentUserId) {
-      await cleanupExistingSession(currentUserId);
+      await cleanupOldSignalingData(currentUserId);
     }
     
     // 3. タイマーの停止
@@ -163,10 +266,13 @@ onAuthStateChanged(auth, async (user) => {
   sceneStarted = true;
 
   const uid = user.uid;
-  currentUserId = uid; // 🔧 追加：現在のユーザーIDを保存
+  currentUserId = uid;
   
-  // 🔧 修正：既存セッションを必ずクリーンアップ
-  await cleanupExistingSession(uid);
+  // ✅ 修正：スマートなクリーンアップ（プレイヤー情報は削除しない）
+  await smartCleanupSession(uid);
+  
+  // ✅ 修正：プレイヤー情報の適切な更新
+  await updatePlayerInfo(uid);
   
   const hostSnap = await get(ref(db, `rooms/${roomCode}/host`));
   const hostUID = hostSnap.exists() ? hostSnap.val() : null;
