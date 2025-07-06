@@ -89,6 +89,13 @@
 
 
 <script type="module" src="game.js"></script>
+  <script>
+  if (location.hostname === "supertky.github.io") {
+    const url = new URL(window.location);
+    url.searchParams.set("v", Date.now());
+    location.replace(url);
+  }
+</script>
 
 </body>
 </html>
