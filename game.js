@@ -41,19 +41,27 @@ let remainingSeconds = 600;
 let timerStarted = false;
 let timerInterval = null;
 
-const storedUID = localStorage.getItem("uid");
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    const result = await signInAnonymously(auth);
-    localStorage.setItem("uid", result.user.uid);
+    await signInAnonymously(auth);
     return;
-  } else {
-    if (!localStorage.getItem("uid")) {
-      localStorage.setItem("uid", user.uid);
-    }
   }
-});
 
+  if (sceneStarted) return;
+  sceneStarted = true;
+
+  const uid = user.uid;
+  const hostSnap = await get(ref(db, `rooms/${roomCode}/host`));
+  const hostUID = hostSnap.exists() ? hostSnap.val() : null;
+
+  if (uid === hostUID) {
+    await onDisconnect(ref(db, `rooms/${roomCode}`)).remove();
+  } else {
+    await onDisconnect(ref(db, `rooms/${roomCode}/players/${uid}`)).remove();
+  }
+
+  startSceneFlow();
+});
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
@@ -197,18 +205,15 @@ async function startCameraAndConnect() {
 
     const video = document.createElement("video");
     video.srcObject = localStream;
-video.autoplay = true;
-video.playsInline = true;
-video.muted = true;
-video.style.width = "200px";
-video.style.margin = "10px";
-document.getElementById("videoGrid").appendChild(video);
+    video.autoplay = true;
+    video.playsInline = true;
+    video.muted = true;
+    video.style.width = "200px";
+    video.style.margin = "10px";
+    document.getElementById("videoGrid").appendChild(video);
+    await video.play().catch(e => console.warn("ローカル再生エラー:", e));
 
-// 🔽 追加！
-video.play().catch(e => console.warn("ローカル再生エラー:", e));
-
-
-    console.log("\ud83d\udcf7 \u30ed\u30fc\u30ab\u30eb\u30ab\u30e1\u30e9\u53d6\u5f97\u5b8c\u4e86");
+    console.log("📷 ローカルカメラ取得完了");
 
     await set(ref(db, `rooms/${roomCode}/players/${auth.currentUser.uid}/cameraReady`), true);
 
@@ -217,19 +222,18 @@ video.play().catch(e => console.warn("ローカル再生エラー:", e));
 
     for (const uid in players) {
       if (uid !== auth.currentUser.uid) {
-        console.log("\ud83d\ude81\ufe0f \u63a5\u7d9a\u958b\u59cb to:", uid);
+        console.log("🛰️ 接続開始 to:", uid);
         await createConnectionWith(uid);
       }
     }
 
     listenForSignals();
   } catch (err) {
-    console.error("\u30ab\u30e1\u30e9\u53d6\u5f97\u30a8\u30e9\u30fc:", err);
+    console.error("カメラ取得エラー:", err);
     alert("カメラの許可が必要です。他のアプリを閉じてください。");
   }
 }
 
-// createConnectionWith(remoteUID)
 async function createConnectionWith(remoteUID) {
   const pc = new RTCPeerConnection({
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
@@ -239,24 +243,21 @@ async function createConnectionWith(remoteUID) {
     pc.addTrack(track, localStream);
   });
 
-pc.ontrack = (event) => {
-  console.log("🎥 映像を受信 from", remoteUID);
-  const remoteVideo = document.createElement("video");
-  remoteVideo.srcObject = event.streams[0];
-  remoteVideo.autoplay = true;
-  remoteVideo.playsInline = true;
-  remoteVideo.style.width = "200px";
-  remoteVideo.style.margin = "10px";
-  document.getElementById("videoGrid").appendChild(remoteVideo);
-
-  // 🔽 追加！
-  remoteVideo.play().catch(e => console.warn("再生エラー:", e));
-};
-
+  pc.ontrack = (event) => {
+    console.log("🎥 映像を受信 from", remoteUID);
+    const remoteVideo = document.createElement("video");
+    remoteVideo.srcObject = event.streams[0];
+    remoteVideo.autoplay = true;
+    remoteVideo.playsInline = true;
+    remoteVideo.style.width = "200px";
+    remoteVideo.style.margin = "10px";
+    document.getElementById("videoGrid").appendChild(remoteVideo);
+    remoteVideo.play().catch(e => console.warn("再生エラー:", e));
+  };
 
   pc.onicecandidate = (event) => {
     if (event.candidate) {
-      console.log("\u2744 ICE candidate \u9001\u4fe1 to:", remoteUID);
+      console.log("❄ ICE candidate 送信 to:", remoteUID);
       const signalRef = ref(db, `rooms/${roomCode}/signals/${auth.currentUser.uid}/${remoteUID}/candidates`);
       const newRef = push(signalRef);
       set(newRef, event.candidate);
@@ -272,7 +273,7 @@ pc.ontrack = (event) => {
   });
 
   peerConnections[remoteUID] = pc;
-  console.log("\ud83d\udcf1 Offer \u9001\u4fe1\u5b8c\u4e86 to:", remoteUID);
+  console.log("📡 Offer 送信完了 to:", remoteUID);
 }
 
 function listenForSignals() {
@@ -298,24 +299,21 @@ function listenForSignals() {
           pc.addTrack(track, localStream);
         });
 
-pc.ontrack = (event) => {
-  console.log("🎥 映像受信 (回答側) from:", fromUID);
-  const remoteVideo = document.createElement("video");
-  remoteVideo.srcObject = event.streams[0];
-  remoteVideo.autoplay = true;
-  remoteVideo.playsInline = true;
-  remoteVideo.style.width = "200px";
-  remoteVideo.style.margin = "10px";
-  document.getElementById("videoGrid").appendChild(remoteVideo);
-
-  // 🔽 追加！
-  remoteVideo.play().catch(e => console.warn("再生エラー:", e));
-};
-
+        pc.ontrack = (event) => {
+          console.log("🎥 映像受信 (回答側) from:", fromUID);
+          const remoteVideo = document.createElement("video");
+          remoteVideo.srcObject = event.streams[0];
+          remoteVideo.autoplay = true;
+          remoteVideo.playsInline = true;
+          remoteVideo.style.width = "200px";
+          remoteVideo.style.margin = "10px";
+          document.getElementById("videoGrid").appendChild(remoteVideo);
+          remoteVideo.play().catch(e => console.warn("再生エラー:", e));
+        };
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
-            console.log("\u2744 ICE candidate \u8fd4\u4fe1 to:", fromUID);
+            console.log("❄ ICE candidate 返信 to:", fromUID);
             const signalRef = ref(db, `rooms/${roomCode}/signals/${myUID}/${fromUID}/candidates`);
             const newRef = push(signalRef);
             set(newRef, event.candidate);
@@ -324,7 +322,7 @@ pc.ontrack = (event) => {
       }
 
       if (signal.offer && !pc.currentRemoteDescription) {
-        console.log("\ud83d\udce8 Offer \u53d7\u4fe1 from:", fromUID);
+        console.log("📨 Offer 受信 from:", fromUID);
         await pc.setRemoteDescription(new RTCSessionDescription(signal.offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
@@ -333,11 +331,11 @@ pc.ontrack = (event) => {
           type: answer.type,
           sdp: answer.sdp
         });
-        console.log("\ud83d\udce8 Answer \u9001\u4fe1 to:", fromUID);
+        console.log("📨 Answer 送信 to:", fromUID);
       }
 
       if (signal.answer && pc.signalingState !== "stable") {
-        console.log("\u2705 Answer \u53d7\u4fe1 from:", fromUID);
+        console.log("✅ Answer 受信 from:", fromUID);
         await pc.setRemoteDescription(new RTCSessionDescription(signal.answer));
       }
 
@@ -346,9 +344,9 @@ pc.ontrack = (event) => {
           try {
             if (pc.remoteDescription) {
               await pc.addIceCandidate(new RTCIceCandidate(candidate));
-              console.log("\u2705 ICE candidate \u53d7\u4fe1 from:", fromUID);
+              console.log("✅ ICE candidate 受信 from:", fromUID);
             } else {
-              console.warn("\u26a0 ICE candidate \u3092\u7121\u8996\uff08remoteDescription \u672a\u8a2d\u5b9a\uff09:", candidate);
+              console.warn("⚠ ICE candidate を無視（remoteDescription 未設定）:", candidate);
             }
           } catch (e) {
             console.error("ICE candidate error:", e);
