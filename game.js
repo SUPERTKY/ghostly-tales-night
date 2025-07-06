@@ -41,27 +41,19 @@ let remainingSeconds = 600;
 let timerStarted = false;
 let timerInterval = null;
 
+const storedUID = localStorage.getItem("uid");
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    await signInAnonymously(auth);
+    const result = await signInAnonymously(auth);
+    localStorage.setItem("uid", result.user.uid);
     return;
-  }
-
-  if (sceneStarted) return;
-  sceneStarted = true;
-
-  const uid = user.uid;
-  const hostSnap = await get(ref(db, `rooms/${roomCode}/host`));
-  const hostUID = hostSnap.exists() ? hostSnap.val() : null;
-
-  if (uid === hostUID) {
-    await onDisconnect(ref(db, `rooms/${roomCode}`)).remove();
   } else {
-    await onDisconnect(ref(db, `rooms/${roomCode}/players/${uid}`)).remove();
+    if (!localStorage.getItem("uid")) {
+      localStorage.setItem("uid", user.uid);
+    }
   }
-
-  startSceneFlow();
 });
+
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
