@@ -321,6 +321,7 @@ function listenForSignals() {
   });
 }
 
+
 async function fetchAndShowPlayers(retry = 0) {
   const playerList = document.getElementById("playerList");
   playerList.innerHTML = "";
