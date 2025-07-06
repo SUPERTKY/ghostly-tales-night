@@ -1,0 +1,78 @@
+申し訳ございません。元のコードの行数を保持して、問題点を指摘いたします。## 🚨 **元のコードの具体的な問題点**
+
+### **問題1：セッション管理の不備（78-85行目）**
+```javascript
+// 元のコード - 問題あり
+onAuthStateChanged(auth, async (user) => {
+  // ... 省略 ...
+  if (uid === hostUID) {
+    await onDisconnect(ref(db, `rooms/${roomCode}`)).remove();
+  } else {
+    await onDisconnect(ref(db, `rooms/${roomCode}/players/${uid}`)).remove();
+  }
+  // ここで既存セッションのクリーンアップがない！
+});
+```
+
+**何が問題？**
+- ページリロード時に古いセッション情報（プレイヤー情報、シグナリング情報）が残ったまま
+- 新しいセッションと古いセッションが混在して混乱が発生
+
+### **問題2：ページ離脱処理が過剰（97-101行目）**
+```javascript
+// 元のコード - 問題あり
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") {
+    window.location.href = "index.html";  // タブ切り替えでも強制離脱！
+  }
+});
+```
+
+**何が問題？**
+- タブを切り替えただけで強制的にトップページに飛ばされる
+- ユーザビリティが著しく低下
+
+### **問題3：WebRTC接続の重複管理（261行目以降）**
+```javascript
+// 元のコード - 問題あり
+async function createConnectionWith(remoteUID) {
+  // 既存接続のチェックなし！
+  const pc = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+  });
+  // ...
+}
+```
+
+**何が問題？**
+- 既存のWebRTC接続を閉じずに新しい接続を作成
+- メモリリークと接続混乱の原因
+
+### **問題4：ビデオ要素の重複（274行目、329行目）**
+```javascript
+// 元のコード - 問題あり
+pc.ontrack = (event) => {
+  // 既存のビデオ要素削除なし！
+  const remoteVideo = document.createElement("video");
+  // ...
+  document.getElementById("videoGrid").appendChild(remoteVideo);
+};
+```
+
+**何が問題？**
+- 同じユーザーのビデオ要素が複数作成される
+- 画面上に重複した映像が表示される可能性
+
+## 📋 **修正のポイント**
+
+| 行数 | 修正内容 | 効果 |
+|------|----------|------|
+| 32-76 | `cleanupExistingSession()` 関数追加 | 古いセッション情報を確実に削除 |
+| 81 | 既存セッションクリーンアップ呼び出し | リロード時の状態不整合解決 |
+| 97-130 | ページ離脱処理の改善 | 誤動作防止とUX向上 |
+| 231-252 | WebRTC接続クリーンアップ関数追加 | メモリリークと接続混乱防止 |
+| 269 | カメラ開始前のクリーンアップ | 重複接続防止 |
+| 284-290 | 既存接続チェックと削除 | 接続の重複防止 |
+| 305、352 | ビデオ要素の重複防止 | 表示の正常化 |
+
+これらの修正により、**元のコード構造と行数を保持しながら**、ページリロード後の問題が解決されます。
