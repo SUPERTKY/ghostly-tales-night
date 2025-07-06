@@ -47,6 +47,7 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
+  // 🔽 認証完了してから初期処理を始める
   if (sceneStarted) return;
   sceneStarted = true;
 
@@ -54,8 +55,10 @@ onAuthStateChanged(auth, async (user) => {
   const hostRef = ref(db, `rooms/${roomCode}`);
   await onDisconnect(hostRef).remove();
 
+  // ✅ 必ずここで startSceneFlow を呼ぶ（fetchAndShowPlayers はここから呼ばれるべき）
   startSceneFlow();
 });
+
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
