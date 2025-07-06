@@ -1,3 +1,4 @@
+
 // Firebaseモジュール読み込み
 import {
   initializeApp,
@@ -40,6 +41,50 @@ let sceneStarted = false;
 let remainingSeconds = 600;
 let timerStarted = false;
 let timerInterval = null;
+// 🔧 追加：セッション管理用変数
+let currentUserId = null;
+let isCleaningUp = false;
+
+// 🔧 新規追加：既存セッションクリーンアップ関数
+async function cleanupExistingSession(uid) {
+  try {
+    console.log("🧹 既存セッションをクリーンアップ中...");
+    
+    // 1. プレイヤー情報の削除
+    const playerRef = ref(db, `rooms/${roomCode}/players/${uid}`);
+    const playerSnap = await get(playerRef);
+    if (playerSnap.exists()) {
+      await set(playerRef, null);
+      console.log("👤 既存プレイヤー情報を削除しました");
+    }
+
+    // 2. シグナリング情報の削除
+    const signalRef = ref(db, `rooms/${roomCode}/signals/${uid}`);
+    const signalSnap = await get(signalRef);
+    if (signalSnap.exists()) {
+      await set(signalRef, null);
+      console.log("📡 既存シグナリング情報を削除しました");
+    }
+
+    // 3. 他のプレイヤーからのシグナリング情報も削除
+    const allSignalsSnap = await get(ref(db, `rooms/${roomCode}/signals`));
+    if (allSignalsSnap.exists()) {
+      const allSignals = allSignalsSnap.val();
+      for (const [fromUID, toMap] of Object.entries(allSignals)) {
+        if (toMap && toMap[uid]) {
+          await set(ref(db, `rooms/${roomCode}/signals/${fromUID}/${uid}`), null);
+          console.log(`📡 ${fromUID}からのシグナリング情報を削除しました`);
+        }
+      }
+    }
+
+    // 4. 少し待機（Firebase側の反映待ち）
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+  } catch (error) {
+    console.error("セッションクリーンアップエラー:", error);
+  }
+}
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
@@ -51,6 +96,11 @@ onAuthStateChanged(auth, async (user) => {
   sceneStarted = true;
 
   const uid = user.uid;
+  currentUserId = uid; // 🔧 追加：現在のユーザーIDを保存
+  
+  // 🔧 修正：既存セッションを必ずクリーンアップ
+  await cleanupExistingSession(uid);
+  
   const hostSnap = await get(ref(db, `rooms/${roomCode}/host`));
   const hostUID = hostSnap.exists() ? hostSnap.val() : null;
 
@@ -63,11 +113,64 @@ onAuthStateChanged(auth, async (user) => {
   startSceneFlow();
 });
 
+// 🔧 修正：ページ離脱処理の改善
+let isPageUnloading = false;
+
+// beforeunloadイベント - ページが閉じられる直前
+window.addEventListener("beforeunload", async (event) => {
+  isPageUnloading = true;
+  await gracefulShutdown();
+});
+
 document.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "hidden") {
-    window.location.href = "index.html";
+  if (document.visibilityState === "hidden" && !isPageUnloading) {
+    console.warn("⚠️ ページが非表示になりました（タブ切り替えなど）");
+    // 🔧 修正：強制的にページ移動はしない
+    // window.location.href = "index.html"; // この行をコメントアウト
+    
+    // 必要に応じて一時停止処理
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      console.log("⏸️ タイマーを一時停止しました");
+    }
+  } else if (document.visibilityState === "visible") {
+    console.log("👁️ ページが再表示されました");
+    
+    // タイマー再開処理
+    if (timerStarted && !timerInterval && remainingSeconds > 0) {
+      startCountdown();
+      console.log("▶️ タイマーを再開しました");
+    }
   }
 });
+
+// 🔧 新規追加：適切な終了処理
+async function gracefulShutdown() {
+  if (isCleaningUp) return;
+  isCleaningUp = true;
+  
+  try {
+    console.log("🏁 アプリケーション終了処理を開始...");
+    
+    // 1. WebRTC接続のクリーンアップ
+    await cleanupWebRTCConnections();
+    
+    // 2. Firebase接続のクリーンアップ
+    if (currentUserId) {
+      await cleanupExistingSession(currentUserId);
+    }
+    
+    // 3. タイマーの停止
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+    
+    console.log("✅ 終了処理完了");
+    
+  } catch (error) {
+    console.error("終了処理エラー:", error);
+  }
+}
 
 const roomRef = ref(db, `rooms/${roomCode}`);
 onValue(roomRef, (snapshot) => {
@@ -199,8 +302,50 @@ async function triggerStoryOutput() {
 const peerConnections = {};
 let localStream = null;
 
+// 🔧 新規追加：WebRTC接続のクリーンアップ
+async function cleanupWebRTCConnections() {
+  try {
+    console.log("🔌 WebRTC接続をクリーンアップ中...");
+    
+    // 既存のPeerConnection接続をすべて閉じる
+    for (const [uid, pc] of Object.entries(peerConnections)) {
+      if (pc) {
+        pc.close();
+        console.log(`🔌 ${uid}への接続を閉じました`);
+      }
+    }
+    
+    // PeerConnectionsをクリア
+    Object.keys(peerConnections).forEach(key => {
+      delete peerConnections[key];
+    });
+
+    // ローカルストリームを停止
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        track.stop();
+        console.log("📷 カメラトラックを停止しました");
+      });
+      localStream = null;
+    }
+
+    // ビデオ要素をすべて削除
+    const videoGrid = document.getElementById("videoGrid");
+    if (videoGrid) {
+      videoGrid.innerHTML = "";
+      console.log("📺 ビデオ要素をクリアしました");
+    }
+    
+  } catch (error) {
+    console.error("WebRTCクリーンアップエラー:", error);
+  }
+}
+
 async function startCameraAndConnect() {
   try {
+    // 🔧 追加：開始前に既存の接続をクリーンアップ
+    await cleanupWebRTCConnections();
+    
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
 
     const video = document.createElement("video");
@@ -237,9 +382,26 @@ async function startCameraAndConnect() {
 
 
 async function createConnectionWith(remoteUID) {
+  // 🔧 追加：既存の接続があれば閉じる
+  if (peerConnections[remoteUID]) {
+    peerConnections[remoteUID].close();
+    delete peerConnections[remoteUID];
+    console.log(`🔌 ${remoteUID}への既存接続を閉じました`);
+  }
+
   const pc = new RTCPeerConnection({
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
   });
+
+  // 🔧 追加：接続状態の監視
+  pc.onconnectionstatechange = () => {
+    console.log(`🔗 ${remoteUID}との接続状態: ${pc.connectionState}`);
+    
+    if (pc.connectionState === 'failed') {
+      console.warn(`❌ ${remoteUID}との接続に失敗しました`);
+      // 必要に応じて再接続処理
+    }
+  };
 
   localStream.getTracks().forEach(track => {
     pc.addTrack(track, localStream);
@@ -247,7 +409,15 @@ async function createConnectionWith(remoteUID) {
 
   pc.ontrack = (event) => {
     console.log("🎥 映像を受信 from", remoteUID);
+    
+    // 🔧 追加：既存のビデオ要素があれば削除
+    const existingVideo = document.querySelector(`[data-user-id="${remoteUID}"]`);
+    if (existingVideo) {
+      existingVideo.remove();
+    }
+    
     const remoteVideo = document.createElement("video");
+    remoteVideo.setAttribute("data-user-id", remoteUID); // 🔧 追加：識別子を追加
     remoteVideo.srcObject = event.streams[0];
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
@@ -301,23 +471,29 @@ function listenForSignals() {
           pc.addTrack(track, localStream);
         });
 
-pc.ontrack = (event) => {
-  console.log("🎥 映像を受信 from", remoteUID);
-  console.log("📺 Track一覧:", event.streams[0].getTracks());
-  console.log("📺 VideoTrack readyState:", event.streams[0].getVideoTracks()[0]?.readyState);
+        pc.ontrack = (event) => {
+          console.log("🎥 映像を受信 from", fromUID); // 🔧 修正：変数名を統一
+          console.log("📺 Track一覧:", event.streams[0].getTracks());
+          console.log("📺 VideoTrack readyState:", event.streams[0].getVideoTracks()[0]?.readyState);
 
-  const remoteVideo = document.createElement("video");
-  remoteVideo.srcObject = event.streams[0];
-  remoteVideo.autoplay = true;
-  remoteVideo.playsInline = true;
-  remoteVideo.style.width = "200px";
-  remoteVideo.style.margin = "10px";
-  remoteVideo.style.height = "150px";
+          // 🔧 追加：既存のビデオ要素があれば削除
+          const existingVideo = document.querySelector(`[data-user-id="${fromUID}"]`);
+          if (existingVideo) {
+            existingVideo.remove();
+          }
 
-  document.getElementById("videoGrid").appendChild(remoteVideo);
-  remoteVideo.play().catch(e => console.warn("再生エラー:", e));
-};
+          const remoteVideo = document.createElement("video");
+          remoteVideo.setAttribute("data-user-id", fromUID); // 🔧 追加：識別子を追加
+          remoteVideo.srcObject = event.streams[0];
+          remoteVideo.autoplay = true;
+          remoteVideo.playsInline = true;
+          remoteVideo.style.width = "200px";
+          remoteVideo.style.margin = "10px";
+          remoteVideo.style.height = "150px";
 
+          document.getElementById("videoGrid").appendChild(remoteVideo);
+          remoteVideo.play().catch(e => console.warn("再生エラー:", e));
+        };
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
