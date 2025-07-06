@@ -209,18 +209,17 @@ async function startCameraAndConnect() {
 
     await set(ref(db, `rooms/${roomCode}/players/${auth.currentUser.uid}/cameraReady`), true);
 
-    // ✅ 他のプレイヤーと接続
     const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
     const players = playersSnap.val();
 
     for (const uid in players) {
       if (uid !== auth.currentUser.uid) {
         console.log("🛰️ connecting to:", uid);
-        await createConnectionWith(uid); // 🔁 P2P接続開始
+        await createConnectionWith(uid);
       }
     }
 
-    listenForSignals(); // 👂 信号を受け取る側
+    listenForSignals();
   } catch (err) {
     console.error("カメラ取得エラー:", err);
     alert("カメラの許可が必要です。他のアプリを閉じてください。");
@@ -333,14 +332,13 @@ function listenForSignals() {
   });
 }
 
-
 async function fetchAndShowPlayers(retry = 0) {
   const playerList = document.getElementById("playerList");
   playerList.innerHTML = "";
 
   const roomSnap = await get(ref(db, `rooms/${roomCode}`));
   if (!roomSnap.exists()) {
-    if (retry < 10) { // ← 回数増やす
+    if (retry < 10) {
       setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
     } else {
       alert("ルームが見つかりませんでした（タイムアウト）");
@@ -348,7 +346,6 @@ async function fetchAndShowPlayers(retry = 0) {
     }
     return;
   }
-
 
   const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
   if (!playersSnap.exists()) {
