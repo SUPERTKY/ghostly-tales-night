@@ -340,7 +340,7 @@ async function fetchAndShowPlayers(retry = 0) {
     }
     return;
   }
-  }
+
 
   const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
   if (!playersSnap.exists()) {
