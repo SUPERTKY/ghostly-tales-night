@@ -1,0 +1,88 @@
+BlockingPageContent.js:2  action SET_STORAGE_DATA @ 21:15:55.624
+BlockingPageContent.js:2  prev state {blocking: false}
+BlockingPageContent.js:2  action     {type: 'SET_STORAGE_DATA', urls: {…}, online: true, eula: true, welcome: true, …}
+BlockingPageContent.js:2  next state {blocking: false}
+NotificationContent.js:2   GET chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/notification.json net::ERR_FILE_NOT_FOUND
+t.default @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+a @ NotificationContent.js:2
+value @ NotificationContent.js:2
+c @ NotificationContent.js:2
+setTimeout
+value @ NotificationContent.js:2
+bn @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+Promise.then
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+NotificationContent.js:2   GET chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/internalPages.json net::ERR_FILE_NOT_FOUND
+t.default @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+a @ NotificationContent.js:2
+value @ NotificationContent.js:2
+c @ NotificationContent.js:2
+setTimeout
+value @ NotificationContent.js:2
+bn @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+Promise.then
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+NotificationContent.js:2   GET chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/popup.json net::ERR_FILE_NOT_FOUND
+t.default @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+a @ NotificationContent.js:2
+value @ NotificationContent.js:2
+c @ NotificationContent.js:2
+setTimeout
+value @ NotificationContent.js:2
+bn @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+Promise.then
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+NotificationContent.js:2  action SET_LOCALE @ 21:15:55.630
+NotificationContent.js:2  prev state {notification: false, locale: '', mode: '', os: '', browser: '', …}
+NotificationContent.js:2  action     {type: 'SET_LOCALE', locale: 'ja'}
+NotificationContent.js:2  next state {notification: false, locale: 'ja', mode: '', os: '', browser: '', …}
+NotificationContent.js:2  action SET_STORAGE_DATA @ 21:15:55.638
+NotificationContent.js:2  prev state {notification: false, locale: 'ja', mode: '', os: '', browser: '', …}
+NotificationContent.js:2  action     {type: 'SET_STORAGE_DATA', urls: {…}, online: true, eula: true, welcome: true, …}
+NotificationContent.js:2  next state {notification: false, locale: 'ja', mode: 'Promoter', os: 'win', browser: 'msedge', …}
+[NEW] Explain Console errors by using Copilot in Edge: click
+         
+         to explain an error. 
+        Learn more
+        Don't show again
+game.js:51 🧹 既存セッションをクリーンアップ中...
+game.js:58 👤 既存プレイヤー情報を削除しました
