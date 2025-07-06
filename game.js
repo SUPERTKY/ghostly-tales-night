@@ -51,8 +51,6 @@ onAuthStateChanged(auth, async (user) => {
   sceneStarted = true;
 
   const uid = user.uid;
-
-  // 🔽 認証が終わってから削除予約などを行う
   const hostSnap = await get(ref(db, `rooms/${roomCode}/host`));
   const hostUID = hostSnap.exists() ? hostSnap.val() : null;
 
@@ -62,11 +60,8 @@ onAuthStateChanged(auth, async (user) => {
     await onDisconnect(ref(db, `rooms/${roomCode}/players/${uid}`)).remove();
   }
 
-  // 🔥 ここで初めて処理開始（fetchAndShowPlayers()もここから呼ばれる）
   startSceneFlow();
 });
-
-
 
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden") {
@@ -217,7 +212,7 @@ async function startCameraAndConnect() {
     video.style.margin = "10px";
     document.getElementById("videoGrid").appendChild(video);
 
-    console.log("📷 ローカルカメラ取得完了");
+    console.log("\ud83d\udcf7 \u30ed\u30fc\u30ab\u30eb\u30ab\u30e1\u30e9\u53d6\u5f97\u5b8c\u4e86");
 
     await set(ref(db, `rooms/${roomCode}/players/${auth.currentUser.uid}/cameraReady`), true);
 
@@ -226,18 +221,19 @@ async function startCameraAndConnect() {
 
     for (const uid in players) {
       if (uid !== auth.currentUser.uid) {
-        console.log("🛰️ 接続開始 to:", uid);
+        console.log("\ud83d\ude81\ufe0f \u63a5\u7d9a\u958b\u59cb to:", uid);
         await createConnectionWith(uid);
       }
     }
 
     listenForSignals();
   } catch (err) {
-    console.error("カメラ取得エラー:", err);
+    console.error("\u30ab\u30e1\u30e9\u53d6\u5f97\u30a8\u30e9\u30fc:", err);
     alert("カメラの許可が必要です。他のアプリを閉じてください。");
   }
 }
-// ✅ createConnectionWith(remoteUID)
+
+// createConnectionWith(remoteUID)
 async function createConnectionWith(remoteUID) {
   const pc = new RTCPeerConnection({
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
@@ -248,7 +244,7 @@ async function createConnectionWith(remoteUID) {
   });
 
   pc.ontrack = (event) => {
-    console.log("🎥 映像を受信 from", remoteUID);
+    console.log("\ud83c\udfa5 \u6620\u50cf\u3092\u53d7\u4fe1 from", remoteUID);
     const remoteVideo = document.createElement("video");
     remoteVideo.srcObject = event.streams[0];
     remoteVideo.autoplay = true;
@@ -260,7 +256,7 @@ async function createConnectionWith(remoteUID) {
 
   pc.onicecandidate = (event) => {
     if (event.candidate) {
-      console.log("❄ ICE candidate 送信 to:", remoteUID);
+      console.log("\u2744 ICE candidate \u9001\u4fe1 to:", remoteUID);
       const signalRef = ref(db, `rooms/${roomCode}/signals/${auth.currentUser.uid}/${remoteUID}/candidates`);
       const newRef = push(signalRef);
       set(newRef, event.candidate);
@@ -276,9 +272,9 @@ async function createConnectionWith(remoteUID) {
   });
 
   peerConnections[remoteUID] = pc;
-  console.log("📡 Offer 送信完了 to:", remoteUID);
+  console.log("\ud83d\udcf1 Offer \u9001\u4fe1\u5b8c\u4e86 to:", remoteUID);
 }
-// ✅ listenForSignals()
+
 function listenForSignals() {
   const myUID = auth.currentUser.uid;
   const signalsRef = ref(db, `rooms/${roomCode}/signals`);
@@ -303,7 +299,7 @@ function listenForSignals() {
         });
 
         pc.ontrack = (event) => {
-          console.log("🎥 映像受信 (回答側) from:", fromUID);
+          console.log("\ud83c\udfa5 \u6620\u50cf\u53d7\u4fe1 (\u56de\u7b54\u5074) from:", fromUID);
           const remoteVideo = document.createElement("video");
           remoteVideo.srcObject = event.streams[0];
           remoteVideo.autoplay = true;
@@ -315,7 +311,7 @@ function listenForSignals() {
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
-            console.log("❄ ICE candidate 返信 to:", fromUID);
+            console.log("\u2744 ICE candidate \u8fd4\u4fe1 to:", fromUID);
             const signalRef = ref(db, `rooms/${roomCode}/signals/${myUID}/${fromUID}/candidates`);
             const newRef = push(signalRef);
             set(newRef, event.candidate);
@@ -324,7 +320,7 @@ function listenForSignals() {
       }
 
       if (signal.offer && !pc.currentRemoteDescription) {
-        console.log("📨 Offer 受信 from:", fromUID);
+        console.log("\ud83d\udce8 Offer \u53d7\u4fe1 from:", fromUID);
         await pc.setRemoteDescription(new RTCSessionDescription(signal.offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
@@ -333,11 +329,11 @@ function listenForSignals() {
           type: answer.type,
           sdp: answer.sdp
         });
-        console.log("📨 Answer 送信 to:", fromUID);
+        console.log("\ud83d\udce8 Answer \u9001\u4fe1 to:", fromUID);
       }
 
       if (signal.answer && pc.signalingState !== "stable") {
-        console.log("✅ Answer 受信 from:", fromUID);
+        console.log("\u2705 Answer \u53d7\u4fe1 from:", fromUID);
         await pc.setRemoteDescription(new RTCSessionDescription(signal.answer));
       }
 
@@ -346,9 +342,9 @@ function listenForSignals() {
           try {
             if (pc.remoteDescription) {
               await pc.addIceCandidate(new RTCIceCandidate(candidate));
-              console.log("✅ ICE candidate 受信 from:", fromUID);
+              console.log("\u2705 ICE candidate \u53d7\u4fe1 from:", fromUID);
             } else {
-              console.warn("⚠ ICE candidate を無視（remoteDescription 未設定）:", candidate);
+              console.warn("\u26a0 ICE candidate \u3092\u7121\u8996\uff08remoteDescription \u672a\u8a2d\u5b9a\uff09:", candidate);
             }
           } catch (e) {
             console.error("ICE candidate error:", e);
@@ -363,17 +359,16 @@ async function fetchAndShowPlayers(retry = 0) {
   const playerList = document.getElementById("playerList");
   playerList.innerHTML = "";
 
-const roomSnap = await get(ref(db, `rooms/${roomCode}`));
-if (!roomSnap.exists()) {
-  if (retry < 10) {
-    setTimeout(() => fetchAndShowPlayers(retry + 1), 500); // 0.5秒後に再試行
-  } else {
-    alert("ルームが見つかりませんでした（タイムアウト）");
-    window.location.href = "index.html";
+  const roomSnap = await get(ref(db, `rooms/${roomCode}`));
+  if (!roomSnap.exists()) {
+    if (retry < 10) {
+      setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
+    } else {
+      alert("ルームが見つかりませんでした（タイムアウト）");
+      window.location.href = "index.html";
+    }
+    return;
   }
-  return;
-}
-
 
   const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
   if (!playersSnap.exists()) {
