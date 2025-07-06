@@ -355,16 +355,17 @@ async function fetchAndShowPlayers(retry = 0) {
   const playerList = document.getElementById("playerList");
   playerList.innerHTML = "";
 
-  const roomSnap = await get(ref(db, `rooms/${roomCode}`));
-  if (!roomSnap.exists()) {
-    if (retry < 10) {
-      setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
-    } else {
-      alert("ルームが見つかりませんでした（タイムアウト）");
-      window.location.href = "index.html";
-    }
-    return;
+const roomSnap = await get(ref(db, `rooms/${roomCode}`));
+if (!roomSnap.exists()) {
+  if (retry < 10) {
+    setTimeout(() => fetchAndShowPlayers(retry + 1), 500); // 0.5秒後に再試行
+  } else {
+    alert("ルームが見つかりませんでした（タイムアウト）");
+    window.location.href = "index.html";
   }
+  return;
+}
+
 
   const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
   if (!playersSnap.exists()) {
