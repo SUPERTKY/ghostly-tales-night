@@ -47,17 +47,25 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
-  // 🔽 認証完了してから初期処理を始める
   if (sceneStarted) return;
   sceneStarted = true;
 
   const uid = user.uid;
-  const hostRef = ref(db, `rooms/${roomCode}`);
-  await onDisconnect(hostRef).remove();
 
-  // ✅ 必ずここで startSceneFlow を呼ぶ（fetchAndShowPlayers はここから呼ばれるべき）
+  // 🔽 認証が終わってから削除予約などを行う
+  const hostSnap = await get(ref(db, `rooms/${roomCode}/host`));
+  const hostUID = hostSnap.exists() ? hostSnap.val() : null;
+
+  if (uid === hostUID) {
+    await onDisconnect(ref(db, `rooms/${roomCode}`)).remove();
+  } else {
+    await onDisconnect(ref(db, `rooms/${roomCode}/players/${uid}`)).remove();
+  }
+
+  // 🔥 ここで初めて処理開始（fetchAndShowPlayers()もここから呼ばれる）
   startSceneFlow();
 });
+
 
 
 document.addEventListener("visibilitychange", () => {
