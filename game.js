@@ -209,6 +209,7 @@ async function startCameraAndConnect() {
     video.playsInline = true;
     video.muted = true;
     video.style.width = "200px";
+    video.style.height = "150px";
     video.style.margin = "10px";
     document.getElementById("videoGrid").appendChild(video);
     await video.play().catch(e => console.warn("ローカル再生エラー:", e));
@@ -233,6 +234,7 @@ async function startCameraAndConnect() {
     alert("カメラの許可が必要です。他のアプリを閉じてください。");
   }
 }
+
 
 async function createConnectionWith(remoteUID) {
   const pc = new RTCPeerConnection({
