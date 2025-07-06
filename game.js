@@ -227,15 +227,18 @@ async function startCameraAndConnect() {
 }
 
 async function createConnectionWith(remoteUID) {
-  const pc = new RTCPeerConnection();
+  const pc = new RTCPeerConnection({
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+});
+
 
   localStream.getTracks().forEach(track => {
     pc.addTrack(track, localStream);
   });
-
-  pc.ontrack = (event) => {
-    const remoteVideo = document.createElement("video");
-    remoteVideo.srcObject = event.streams[0];
+pc.ontrack = (event) => {
+  console.log("🎥 リモート映像を受信:", event.streams[0]);
+  const remoteVideo = document.createElement("video");
+  remoteVideo.srcObject = event.streams[0];
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
     remoteVideo.style.width = "200px";
@@ -319,15 +322,20 @@ function listenForSignals() {
         await pc.setRemoteDescription(new RTCSessionDescription(signal.answer));
       }
 
-      if (signal.candidates) {
-        for (const candidate of Object.values(signal.candidates)) {
-          try {
-            await pc.addIceCandidate(new RTCIceCandidate(candidate));
-          } catch (e) {
-            console.error("ICE candidate error:", e);
-          }
-        }
+if (signal.candidates) {
+  for (const candidate of Object.values(signal.candidates)) {
+    try {
+      if (pc.remoteDescription) {
+        await pc.addIceCandidate(new RTCIceCandidate(candidate));
+      } else {
+        console.warn("🧊 remoteDescription 未設定。candidate を保留または再試行へ:", candidate);
       }
+    } catch (e) {
+      console.error("ICE candidate error:", e);
+    }
+  }
+}
+
     }
   });
 }
