@@ -301,17 +301,23 @@ function listenForSignals() {
           pc.addTrack(track, localStream);
         });
 
-        pc.ontrack = (event) => {
-          console.log("🎥 映像受信 (回答側) from:", fromUID);
-          const remoteVideo = document.createElement("video");
-          remoteVideo.srcObject = event.streams[0];
-          remoteVideo.autoplay = true;
-          remoteVideo.playsInline = true;
-          remoteVideo.style.width = "200px";
-          remoteVideo.style.margin = "10px";
-          document.getElementById("videoGrid").appendChild(remoteVideo);
-          remoteVideo.play().catch(e => console.warn("再生エラー:", e));
-        };
+pc.ontrack = (event) => {
+  console.log("🎥 映像を受信 from", remoteUID);
+  console.log("📺 Track一覧:", event.streams[0].getTracks());
+  console.log("📺 VideoTrack readyState:", event.streams[0].getVideoTracks()[0]?.readyState);
+
+  const remoteVideo = document.createElement("video");
+  remoteVideo.srcObject = event.streams[0];
+  remoteVideo.autoplay = true;
+  remoteVideo.playsInline = true;
+  remoteVideo.style.width = "200px";
+  remoteVideo.style.margin = "10px";
+  remoteVideo.style.height = "150px";
+
+  document.getElementById("videoGrid").appendChild(remoteVideo);
+  remoteVideo.play().catch(e => console.warn("再生エラー:", e));
+};
+
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
