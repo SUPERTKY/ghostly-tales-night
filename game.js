@@ -205,12 +205,16 @@ async function startCameraAndConnect() {
 
     const video = document.createElement("video");
     video.srcObject = localStream;
-    video.autoplay = true;
-    video.playsInline = true;
-    video.muted = true;
-    video.style.width = "200px";
-    video.style.margin = "10px";
-    document.getElementById("videoGrid").appendChild(video);
+video.autoplay = true;
+video.playsInline = true;
+video.muted = true;
+video.style.width = "200px";
+video.style.margin = "10px";
+document.getElementById("videoGrid").appendChild(video);
+
+// 🔽 追加！
+video.play().catch(e => console.warn("ローカル再生エラー:", e));
+
 
     console.log("\ud83d\udcf7 \u30ed\u30fc\u30ab\u30eb\u30ab\u30e1\u30e9\u53d6\u5f97\u5b8c\u4e86");
 
