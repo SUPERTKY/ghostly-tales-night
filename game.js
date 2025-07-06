@@ -209,12 +209,24 @@ async function startCameraAndConnect() {
 
     await set(ref(db, `rooms/${roomCode}/players/${auth.currentUser.uid}/cameraReady`), true);
 
-    listenForSignals();
+    // ✅ 他のプレイヤーと接続
+    const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
+    const players = playersSnap.val();
+
+    for (const uid in players) {
+      if (uid !== auth.currentUser.uid) {
+        console.log("🛰️ connecting to:", uid);
+        await createConnectionWith(uid); // 🔁 P2P接続開始
+      }
+    }
+
+    listenForSignals(); // 👂 信号を受け取る側
   } catch (err) {
     console.error("カメラ取得エラー:", err);
     alert("カメラの許可が必要です。他のアプリを閉じてください。");
   }
 }
+
 async function createConnectionWith(remoteUID) {
   const pc = new RTCPeerConnection();
 
