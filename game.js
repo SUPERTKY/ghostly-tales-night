@@ -247,16 +247,20 @@ async function createConnectionWith(remoteUID) {
     pc.addTrack(track, localStream);
   });
 
-  pc.ontrack = (event) => {
-    console.log("\ud83c\udfa5 \u6620\u50cf\u3092\u53d7\u4fe1 from", remoteUID);
-    const remoteVideo = document.createElement("video");
-    remoteVideo.srcObject = event.streams[0];
-    remoteVideo.autoplay = true;
-    remoteVideo.playsInline = true;
-    remoteVideo.style.width = "200px";
-    remoteVideo.style.margin = "10px";
-    document.getElementById("videoGrid").appendChild(remoteVideo);
-  };
+pc.ontrack = (event) => {
+  console.log("🎥 映像を受信 from", remoteUID);
+  const remoteVideo = document.createElement("video");
+  remoteVideo.srcObject = event.streams[0];
+  remoteVideo.autoplay = true;
+  remoteVideo.playsInline = true;
+  remoteVideo.style.width = "200px";
+  remoteVideo.style.margin = "10px";
+  document.getElementById("videoGrid").appendChild(remoteVideo);
+
+  // 🔽 追加！
+  remoteVideo.play().catch(e => console.warn("再生エラー:", e));
+};
+
 
   pc.onicecandidate = (event) => {
     if (event.candidate) {
@@ -302,16 +306,20 @@ function listenForSignals() {
           pc.addTrack(track, localStream);
         });
 
-        pc.ontrack = (event) => {
-          console.log("\ud83c\udfa5 \u6620\u50cf\u53d7\u4fe1 (\u56de\u7b54\u5074) from:", fromUID);
-          const remoteVideo = document.createElement("video");
-          remoteVideo.srcObject = event.streams[0];
-          remoteVideo.autoplay = true;
-          remoteVideo.playsInline = true;
-          remoteVideo.style.width = "200px";
-          remoteVideo.style.margin = "10px";
-          document.getElementById("videoGrid").appendChild(remoteVideo);
-        };
+pc.ontrack = (event) => {
+  console.log("🎥 映像受信 (回答側) from:", fromUID);
+  const remoteVideo = document.createElement("video");
+  remoteVideo.srcObject = event.streams[0];
+  remoteVideo.autoplay = true;
+  remoteVideo.playsInline = true;
+  remoteVideo.style.width = "200px";
+  remoteVideo.style.margin = "10px";
+  document.getElementById("videoGrid").appendChild(remoteVideo);
+
+  // 🔽 追加！
+  remoteVideo.play().catch(e => console.warn("再生エラー:", e));
+};
+
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
