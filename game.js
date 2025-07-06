@@ -1,4 +1,3 @@
-
 // Firebaseモジュール読み込み
 import {
   initializeApp,
@@ -44,6 +43,7 @@ let timerInterval = null;
 // 🔧 追加：セッション管理用変数
 let currentUserId = null;
 let isCleaningUp = false;
+let isPageUnloading = false;
 
 // 🔧 新規追加：既存セッションクリーンアップ関数
 async function cleanupExistingSession(uid) {
@@ -86,6 +86,73 @@ async function cleanupExistingSession(uid) {
   }
 }
 
+// 🔧 新規追加：WebRTC接続のクリーンアップ関数
+async function cleanupWebRTCConnections() {
+  try {
+    console.log("🔌 WebRTC接続をクリーンアップ中...");
+    
+    // 既存のPeerConnection接続をすべて閉じる
+    for (const [uid, pc] of Object.entries(peerConnections)) {
+      if (pc) {
+        pc.close();
+        console.log(`🔌 ${uid}への接続を閉じました`);
+      }
+    }
+    
+    // PeerConnectionsをクリア
+    Object.keys(peerConnections).forEach(key => {
+      delete peerConnections[key];
+    });
+
+    // ローカルストリームを停止
+    if (localStream) {
+      localStream.getTracks().forEach(track => {
+        track.stop();
+        console.log("📷 カメラトラックを停止しました");
+      });
+      localStream = null;
+    }
+
+    // ビデオ要素をすべて削除
+    const videoGrid = document.getElementById("videoGrid");
+    if (videoGrid) {
+      videoGrid.innerHTML = "";
+      console.log("📺 ビデオ要素をクリアしました");
+    }
+    
+  } catch (error) {
+    console.error("WebRTCクリーンアップエラー:", error);
+  }
+}
+
+// 🔧 新規追加：適切な終了処理関数
+async function gracefulShutdown() {
+  if (isCleaningUp) return;
+  isCleaningUp = true;
+  
+  try {
+    console.log("🏁 アプリケーション終了処理を開始...");
+    
+    // 1. WebRTC接続のクリーンアップ
+    await cleanupWebRTCConnections();
+    
+    // 2. Firebase接続のクリーンアップ
+    if (currentUserId) {
+      await cleanupExistingSession(currentUserId);
+    }
+    
+    // 3. タイマーの停止
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+    
+    console.log("✅ 終了処理完了");
+    
+  } catch (error) {
+    console.error("終了処理エラー:", error);
+  }
+}
+
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     await signInAnonymously(auth);
@@ -113,10 +180,7 @@ onAuthStateChanged(auth, async (user) => {
   startSceneFlow();
 });
 
-// 🔧 修正：ページ離脱処理の改善
-let isPageUnloading = false;
-
-// beforeunloadイベント - ページが閉じられる直前
+// 🔧 新規追加：beforeunloadイベント
 window.addEventListener("beforeunload", async (event) => {
   isPageUnloading = true;
   await gracefulShutdown();
@@ -143,34 +207,6 @@ document.addEventListener("visibilitychange", () => {
     }
   }
 });
-
-// 🔧 新規追加：適切な終了処理
-async function gracefulShutdown() {
-  if (isCleaningUp) return;
-  isCleaningUp = true;
-  
-  try {
-    console.log("🏁 アプリケーション終了処理を開始...");
-    
-    // 1. WebRTC接続のクリーンアップ
-    await cleanupWebRTCConnections();
-    
-    // 2. Firebase接続のクリーンアップ
-    if (currentUserId) {
-      await cleanupExistingSession(currentUserId);
-    }
-    
-    // 3. タイマーの停止
-    if (timerInterval) {
-      clearInterval(timerInterval);
-    }
-    
-    console.log("✅ 終了処理完了");
-    
-  } catch (error) {
-    console.error("終了処理エラー:", error);
-  }
-}
 
 const roomRef = ref(db, `rooms/${roomCode}`);
 onValue(roomRef, (snapshot) => {
@@ -302,45 +338,6 @@ async function triggerStoryOutput() {
 const peerConnections = {};
 let localStream = null;
 
-// 🔧 新規追加：WebRTC接続のクリーンアップ
-async function cleanupWebRTCConnections() {
-  try {
-    console.log("🔌 WebRTC接続をクリーンアップ中...");
-    
-    // 既存のPeerConnection接続をすべて閉じる
-    for (const [uid, pc] of Object.entries(peerConnections)) {
-      if (pc) {
-        pc.close();
-        console.log(`🔌 ${uid}への接続を閉じました`);
-      }
-    }
-    
-    // PeerConnectionsをクリア
-    Object.keys(peerConnections).forEach(key => {
-      delete peerConnections[key];
-    });
-
-    // ローカルストリームを停止
-    if (localStream) {
-      localStream.getTracks().forEach(track => {
-        track.stop();
-        console.log("📷 カメラトラックを停止しました");
-      });
-      localStream = null;
-    }
-
-    // ビデオ要素をすべて削除
-    const videoGrid = document.getElementById("videoGrid");
-    if (videoGrid) {
-      videoGrid.innerHTML = "";
-      console.log("📺 ビデオ要素をクリアしました");
-    }
-    
-  } catch (error) {
-    console.error("WebRTCクリーンアップエラー:", error);
-  }
-}
-
 async function startCameraAndConnect() {
   try {
     // 🔧 追加：開始前に既存の接続をクリーンアップ
@@ -399,7 +396,6 @@ async function createConnectionWith(remoteUID) {
     
     if (pc.connectionState === 'failed') {
       console.warn(`❌ ${remoteUID}との接続に失敗しました`);
-      // 必要に応じて再接続処理
     }
   };
 
@@ -414,6 +410,7 @@ async function createConnectionWith(remoteUID) {
     const existingVideo = document.querySelector(`[data-user-id="${remoteUID}"]`);
     if (existingVideo) {
       existingVideo.remove();
+      console.log(`📺 ${remoteUID}の既存ビデオ要素を削除しました`);
     }
     
     const remoteVideo = document.createElement("video");
@@ -422,6 +419,7 @@ async function createConnectionWith(remoteUID) {
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
     remoteVideo.style.width = "200px";
+    remoteVideo.style.height = "150px"; // 🔧 追加：高さも指定
     remoteVideo.style.margin = "10px";
     document.getElementById("videoGrid").appendChild(remoteVideo);
     remoteVideo.play().catch(e => console.warn("再生エラー:", e));
@@ -472,7 +470,7 @@ function listenForSignals() {
         });
 
         pc.ontrack = (event) => {
-          console.log("🎥 映像を受信 from", fromUID); // 🔧 修正：変数名を統一
+          console.log("🎥 映像を受信 from", fromUID); // 🔧 修正：変数名を正しく修正（remoteUID → fromUID）
           console.log("📺 Track一覧:", event.streams[0].getTracks());
           console.log("📺 VideoTrack readyState:", event.streams[0].getVideoTracks()[0]?.readyState);
 
@@ -480,6 +478,7 @@ function listenForSignals() {
           const existingVideo = document.querySelector(`[data-user-id="${fromUID}"]`);
           if (existingVideo) {
             existingVideo.remove();
+            console.log(`📺 ${fromUID}の既存ビデオ要素を削除しました`);
           }
 
           const remoteVideo = document.createElement("video");
