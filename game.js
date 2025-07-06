@@ -13,7 +13,6 @@ import {
   getAuth, signInAnonymously, onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// クエリパラメータから roomCode を取得
 const params = new URLSearchParams(location.search);
 const roomCode = params.get("roomCode");
 
@@ -23,7 +22,6 @@ if (!roomCode) {
   throw new Error("ルームコードなし");
 }
 
-// Firebase 初期化
 const firebaseConfig = {
   apiKey: "AIzaSyB1hyrktLnx7lzW2jf4ZeIzTrBEY-IEgPo",
   authDomain: "horror-game-9b2d2.firebaseapp.com",
@@ -155,7 +153,6 @@ function startSceneFlow() {
   };
 
   overlay.addEventListener("transitionend", onTransitionEnd);
-
   setTimeout(() => {
     overlay.style.opacity = "0";
   }, 100);
@@ -210,16 +207,14 @@ async function startCameraAndConnect() {
 
     document.getElementById("videoGrid").appendChild(video);
 
-    // ✅ カメラOKを通知
     await set(ref(db, `rooms/${roomCode}/players/${auth.currentUser.uid}/cameraReady`), true);
 
-    // 残りのP2P接続処理へ
+    listenForSignals();
   } catch (err) {
     console.error("カメラ取得エラー:", err);
     alert("カメラの許可が必要です。他のアプリを閉じてください。");
   }
 }
-
 async function createConnectionWith(remoteUID) {
   const pc = new RTCPeerConnection();
 
