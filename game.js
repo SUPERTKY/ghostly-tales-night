@@ -204,8 +204,9 @@ async function startCameraAndConnect() {
     video.muted = true;
     video.style.width = "200px";
     video.style.margin = "10px";
-
     document.getElementById("videoGrid").appendChild(video);
+
+    console.log("📷 ローカルカメラ取得完了");
 
     await set(ref(db, `rooms/${roomCode}/players/${auth.currentUser.uid}/cameraReady`), true);
 
@@ -214,7 +215,7 @@ async function startCameraAndConnect() {
 
     for (const uid in players) {
       if (uid !== auth.currentUser.uid) {
-        console.log("🛰️ connecting to:", uid);
+        console.log("🛰️ 接続開始 to:", uid);
         await createConnectionWith(uid);
       }
     }
@@ -225,20 +226,20 @@ async function startCameraAndConnect() {
     alert("カメラの許可が必要です。他のアプリを閉じてください。");
   }
 }
-
+// ✅ createConnectionWith(remoteUID)
 async function createConnectionWith(remoteUID) {
   const pc = new RTCPeerConnection({
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
-});
-
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
+  });
 
   localStream.getTracks().forEach(track => {
     pc.addTrack(track, localStream);
   });
-pc.ontrack = (event) => {
-  console.log("🎥 リモート映像を受信:", event.streams[0]);
-  const remoteVideo = document.createElement("video");
-  remoteVideo.srcObject = event.streams[0];
+
+  pc.ontrack = (event) => {
+    console.log("🎥 映像を受信 from", remoteUID);
+    const remoteVideo = document.createElement("video");
+    remoteVideo.srcObject = event.streams[0];
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
     remoteVideo.style.width = "200px";
@@ -248,6 +249,7 @@ pc.ontrack = (event) => {
 
   pc.onicecandidate = (event) => {
     if (event.candidate) {
+      console.log("❄ ICE candidate 送信 to:", remoteUID);
       const signalRef = ref(db, `rooms/${roomCode}/signals/${auth.currentUser.uid}/${remoteUID}/candidates`);
       const newRef = push(signalRef);
       set(newRef, event.candidate);
@@ -263,8 +265,9 @@ pc.ontrack = (event) => {
   });
 
   peerConnections[remoteUID] = pc;
+  console.log("📡 Offer 送信完了 to:", remoteUID);
 }
-
+// ✅ listenForSignals()
 function listenForSignals() {
   const myUID = auth.currentUser.uid;
   const signalsRef = ref(db, `rooms/${roomCode}/signals`);
@@ -281,7 +284,7 @@ function listenForSignals() {
 
       let pc = peerConnections[fromUID];
       if (!pc) {
-        pc = new RTCPeerConnection();
+        pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
         peerConnections[fromUID] = pc;
 
         localStream.getTracks().forEach(track => {
@@ -289,6 +292,7 @@ function listenForSignals() {
         });
 
         pc.ontrack = (event) => {
+          console.log("🎥 映像受信 (回答側) from:", fromUID);
           const remoteVideo = document.createElement("video");
           remoteVideo.srcObject = event.streams[0];
           remoteVideo.autoplay = true;
@@ -300,6 +304,7 @@ function listenForSignals() {
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
+            console.log("❄ ICE candidate 返信 to:", fromUID);
             const signalRef = ref(db, `rooms/${roomCode}/signals/${myUID}/${fromUID}/candidates`);
             const newRef = push(signalRef);
             set(newRef, event.candidate);
@@ -308,6 +313,7 @@ function listenForSignals() {
       }
 
       if (signal.offer && !pc.currentRemoteDescription) {
+        console.log("📨 Offer 受信 from:", fromUID);
         await pc.setRemoteDescription(new RTCSessionDescription(signal.offer));
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
@@ -316,26 +322,28 @@ function listenForSignals() {
           type: answer.type,
           sdp: answer.sdp
         });
+        console.log("📨 Answer 送信 to:", fromUID);
       }
 
       if (signal.answer && pc.signalingState !== "stable") {
+        console.log("✅ Answer 受信 from:", fromUID);
         await pc.setRemoteDescription(new RTCSessionDescription(signal.answer));
       }
 
-if (signal.candidates) {
-  for (const candidate of Object.values(signal.candidates)) {
-    try {
-      if (pc.remoteDescription) {
-        await pc.addIceCandidate(new RTCIceCandidate(candidate));
-      } else {
-        console.warn("🧊 remoteDescription 未設定。candidate を保留または再試行へ:", candidate);
+      if (signal.candidates) {
+        for (const candidate of Object.values(signal.candidates)) {
+          try {
+            if (pc.remoteDescription) {
+              await pc.addIceCandidate(new RTCIceCandidate(candidate));
+              console.log("✅ ICE candidate 受信 from:", fromUID);
+            } else {
+              console.warn("⚠ ICE candidate を無視（remoteDescription 未設定）:", candidate);
+            }
+          } catch (e) {
+            console.error("ICE candidate error:", e);
+          }
+        }
       }
-    } catch (e) {
-      console.error("ICE candidate error:", e);
-    }
-  }
-}
-
     }
   });
 }
