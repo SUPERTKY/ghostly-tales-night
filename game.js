@@ -575,30 +575,41 @@ function listenForSignals() {
           pc.addTrack(track, localStream);
         });
 
-        pc.ontrack = (event) => {
-          console.log("🎥 映像を受信 from", fromUID); // 🔧 修正：変数名を正しく修正（remoteUID → fromUID）
-          console.log("📺 Track一覧:", event.streams[0].getTracks());
-          console.log("📺 VideoTrack readyState:", event.streams[0].getVideoTracks()[0]?.readyState);
+pc.ontrack = (event) => {
+  console.log("🎥 映像を受信 from", remoteUID); // または fromUID
+  const stream = event.streams[0];
 
-          // 🔧 追加：既存のビデオ要素があれば削除
-          const existingVideo = document.querySelector(`[data-user-id="${fromUID}"]`);
-          if (existingVideo) {
-            existingVideo.remove();
-            console.log(`📺 ${fromUID}の既存ビデオ要素を削除しました`);
-          }
+  // 🔍 デバッグ出力
+  const videoTrack = stream.getVideoTracks()[0];
+  console.log("📺 stream:", stream);
+  console.log("📺 videoTrack state:", videoTrack?.readyState); // live or ended
+  console.log("📺 videoTrack enabled:", videoTrack?.enabled);
+  console.log("📺 全トラック:", stream.getTracks());
 
-          const remoteVideo = document.createElement("video");
-          remoteVideo.setAttribute("data-user-id", fromUID); // 🔧 追加：識別子を追加
-          remoteVideo.srcObject = event.streams[0];
-          remoteVideo.autoplay = true;
-          remoteVideo.playsInline = true;
-          remoteVideo.style.width = "200px";
-          remoteVideo.style.margin = "10px";
-          remoteVideo.style.height = "150px";
+  // 既存の video があれば削除
+  const existingVideo = document.querySelector(`[data-user-id="${remoteUID}"]`);
+  if (existingVideo) {
+    existingVideo.remove();
+    console.log(`📺 ${remoteUID}の既存ビデオ要素を削除しました`);
+  }
 
-          document.getElementById("videoGrid").appendChild(remoteVideo);
-          remoteVideo.play().catch(e => console.warn("再生エラー:", e));
-        };
+  const remoteVideo = document.createElement("video");
+  remoteVideo.setAttribute("data-user-id", remoteUID);
+  remoteVideo.srcObject = stream;
+  remoteVideo.autoplay = true;
+  remoteVideo.playsInline = true;
+  remoteVideo.style.width = "200px";
+  remoteVideo.style.height = "150px";
+  remoteVideo.style.margin = "10px";
+
+  // ✅ 読み込み完了後に再生（自動再生制限回避）
+  remoteVideo.onloadedmetadata = () => {
+    remoteVideo.play().catch(e => console.warn("❌ 再生エラー:", e));
+  };
+
+  document.getElementById("videoGrid").appendChild(remoteVideo);
+};
+
 
         pc.onicecandidate = (event) => {
           if (event.candidate) {
