@@ -576,25 +576,17 @@ function listenForSignals() {
         });
 
 pc.ontrack = (event) => {
-  console.log("🎥 映像を受信 from", remoteUID); // または fromUID
   const stream = event.streams[0];
+  const track = stream?.getVideoTracks?.()[0];
 
-  // 🔍 デバッグ出力
-  const videoTrack = stream.getVideoTracks()[0];
+  console.log("🎥 映像を受信 from", fromUID);
   console.log("📺 stream:", stream);
-  console.log("📺 videoTrack state:", videoTrack?.readyState); // live or ended
-  console.log("📺 videoTrack enabled:", videoTrack?.enabled);
-  console.log("📺 全トラック:", stream.getTracks());
-
-  // 既存の video があれば削除
-  const existingVideo = document.querySelector(`[data-user-id="${remoteUID}"]`);
-  if (existingVideo) {
-    existingVideo.remove();
-    console.log(`📺 ${remoteUID}の既存ビデオ要素を削除しました`);
-  }
+  console.log("📺 videoTrack state:", track?.readyState);   // live or ended
+  console.log("📺 videoTrack enabled:", track?.enabled);     // true or false
+  console.log("📺 videoTrack label:", track?.label);         // カメラ名など
+  console.log("📺 stream track count:", stream.getTracks().length);
 
   const remoteVideo = document.createElement("video");
-  remoteVideo.setAttribute("data-user-id", remoteUID);
   remoteVideo.srcObject = stream;
   remoteVideo.autoplay = true;
   remoteVideo.playsInline = true;
@@ -602,12 +594,20 @@ pc.ontrack = (event) => {
   remoteVideo.style.height = "150px";
   remoteVideo.style.margin = "10px";
 
-  // ✅ 読み込み完了後に再生（自動再生制限回避）
   remoteVideo.onloadedmetadata = () => {
-    remoteVideo.play().catch(e => console.warn("❌ 再生エラー:", e));
+    console.log("📐 onloadedmetadata - width:", remoteVideo.videoWidth, "height:", remoteVideo.videoHeight);
+  };
+
+  remoteVideo.onplay = () => {
+    console.log("▶️ remoteVideo.play() 発火");
+  };
+
+  remoteVideo.onerror = (e) => {
+    console.warn("⚠️ remoteVideo エラー:", e);
   };
 
   document.getElementById("videoGrid").appendChild(remoteVideo);
+  remoteVideo.play().catch(e => console.warn("再生エラー:", e));
 };
 
 
