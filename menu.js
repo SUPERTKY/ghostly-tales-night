@@ -43,4 +43,9 @@ window.addEventListener("DOMContentLoaded", () => {
     clickSound.play();
     alert("ボタン3が押されました");
   });
+    // ボタン4：例文ページへ遷移
+  document.getElementById("btn4").addEventListener("click", () => {
+    fadeWithSoundThenGo("example.html"); // ← 遷移先HTMLファイル名を自由に
+  });
+
 });
