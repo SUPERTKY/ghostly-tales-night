@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>例文ページ</title>
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: "Hiragino Kaku Gothic ProN", "メイリオ", sans-serif;
+      padding: 40px 10%;
+    }
+
+    #backMenuBtn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+    }
+
+    #navButtons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 60px;
+    }
+
+    button {
+      background-color: #333;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1em;
+    }
+
+    button:hover {
+      background-color: #555;
+    }
+
+    .example-text {
+      margin-top: 80px;
+      line-height: 1.8;
+      font-size: 1.1em;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 戻るボタン（メニューへ） -->
+  <button id="backMenuBtn" onclick="location.href='index.html'">← メニューに戻る</button>
+
+  <!-- 本文表示 -->
+  <div class="example-text" id="exampleContent">
+    <h1>読み込み中...</h1>
+  </div>
+
+  <!-- ナビゲーション（次・前） -->
+  <div id="navButtons">
+    <button id="prevBtn">← 前の話</button>
+    <button id="nextBtn">次の話 →</button>
+  </div>
+
+  <script>
+    const examples = [
+      {
+        title: "例文①",
+        body: `放課後の教室には、まだ誰かの気配が残っていた。<br>
+               席を立ったはずの友人の笑い声が、かすかに聞こえたような気がして、振り返ったけれど、そこにはもう誰もいなかった。<br>
+               それでも、窓の外から差し込む夕日が、椅子の影を長く伸ばして、何かを指し示すようだった。`
+      },
+      {
+        title: "例文②",
+        body: `階段を上るたび、足音が一つ多く聞こえた。<br>
+               自分のものではないと気づいたとき、すでに鍵はかかっていて、下に降りることはできなかった。<br>
+               後ろを振り向くのは、何かを認めることのようで、ただ目を閉じて、静かに数を数え始めた。`
+      },
+      {
+        title: "例文③",
+        body: `誰もいないはずの図書室で、ページをめくる音がした。<br>
+               音のする棚に近づくと、一冊の本が抜け落ちていて、そのページには「おまえも見ていたのだろう」と書かれていた。<br>
+               その日から、時計の針は午後3時で止まったままだ。`
+      }
+    ];
+
+    const params = new URLSearchParams(window.location.search);
+    let ep = parseInt(params.get("ep")) || 1;
+
+    const content = document.getElementById("exampleContent");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    function loadEpisode(index) {
+      const data = examples[index - 1];
+      if (data) {
+        content.innerHTML = `<h1>${data.title}</h1><p>${data.body}</p>`;
+      } else {
+        content.innerHTML = "<h1>その話は存在しません</h1>";
+      }
+
+      // ボタン制御
+      prevBtn.disabled = index <= 1;
+      nextBtn.disabled = index >= examples.length;
+
+      // ボタンのリンク変更
+      prevBtn.onclick = () => location.href = `example.html?ep=${index - 1}`;
+      nextBtn.onclick = () => location.href = `example.html?ep=${index + 1}`;
+    }
+
+    loadEpisode(ep);
+  </script>
+</body>
+</html>
