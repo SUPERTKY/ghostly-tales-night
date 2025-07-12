@@ -739,8 +739,6 @@ function generateStoryTemplate() {
   ).join("");
 }
 
-let storyAlreadyOutput = false;
-
 function triggerStoryOutput() {
   if (storyAlreadyOutput) return;
   storyAlreadyOutput = true;
