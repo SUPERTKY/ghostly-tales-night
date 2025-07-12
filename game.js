@@ -656,39 +656,51 @@ pc.ontrack = (event) => {
     }
   });
 }
-
 async function fetchAndShowPlayers(retry = 0) {
   const playerList = document.getElementById("playerList");
   playerList.innerHTML = "";
 
-  const roomSnap = await get(ref(db, `rooms/${roomCode}`));
-  if (!roomSnap.exists()) {
+  try {
+    const roomSnap = await get(ref(db, `rooms/${roomCode}`));
+    if (!roomSnap.exists()) {
+      console.warn(`[${retry}] ルーム情報が見つかりません`);
+      if (retry < 10) {
+        setTimeout(() => fetchAndShowPlayers(retry + 1), 1000); // 500ms → 1000msに拡張
+      } else {
+        alert("ルームが見つかりませんでした（タイムアウト）");
+        window.location.href = "index.html";
+      }
+      return;
+    }
+
+    const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
+    if (!playersSnap.exists()) {
+      console.warn(`[${retry}] プレイヤー情報が見つかりません`);
+      if (retry < 10) {
+        setTimeout(() => fetchAndShowPlayers(retry + 1), 1000); // retry数と遅延強化
+      } else {
+        alert("プレイヤー情報が見つかりませんでした（タイムアウト）");
+        window.location.href = "index.html";
+      }
+      return;
+    }
+
+    const players = playersSnap.val();
+    const shuffled = Object.values(players).sort(() => Math.random() - 0.5);
+
+    shuffled.forEach((player, index) => {
+      const li = document.createElement("li");
+      li.textContent = `${index + 1}. ${player.name || "名無し"}`;
+      playerList.appendChild(li);
+    });
+
+  } catch (error) {
+    console.error("❌ fetchAndShowPlayers中にエラー:", error);
     if (retry < 10) {
-      setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
+      setTimeout(() => fetchAndShowPlayers(retry + 1), 1000);
     } else {
-      alert("ルームが見つかりませんでした（タイムアウト）");
+      alert("ルームまたはプレイヤー情報の取得に失敗しました（タイムアウト）");
       window.location.href = "index.html";
     }
-    return;
   }
-
-  const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
-  if (!playersSnap.exists()) {
-    if (retry < 5) {
-      setTimeout(() => fetchAndShowPlayers(retry + 1), 500);
-    } else {
-      alert("プレイヤー情報が見つかりませんでした（タイムアウト）");
-      window.location.href = "index.html";
-    }
-    return;
-  }
-
-  const players = playersSnap.val();
-  const shuffled = Object.values(players).sort(() => Math.random() - 0.5);
-
-  shuffled.forEach((player, index) => {
-    const li = document.createElement("li");
-    li.textContent = `${index + 1}. ${player.name || "名無し"}`;
-    playerList.appendChild(li);
-  });
 }
