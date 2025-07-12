@@ -421,28 +421,20 @@ async function triggerStoryOutput() {
 
   const overlay = document.getElementById("fadeOverlay");
   const container = document.getElementById("textboxContainer");
-  const storyBox = document.getElementById("storyTemplate");
   const bottomUI = document.getElementById("bottomUI");
   const playerList = document.getElementById("playerList");
   const videoGrid = document.getElementById("videoGrid");
 
-  // 黒画面フェードイン（暗転）
   overlay.style.pointerEvents = "auto";
   overlay.style.opacity = "1";
 
   overlay.addEventListener("transitionend", function handleFadeIn() {
     overlay.removeEventListener("transitionend", handleFadeIn);
 
-    // 一旦すべてのUIを非表示に
+    container.style.display = "none";
     bottomUI.style.display = "none";
     playerList.style.display = "none";
 
-    // ✅ 怪談を生成して表示
-    const storyHTML = generateStoryTemplate();
-    storyBox.innerHTML = storyHTML;
-    container.style.display = "block";
-
-    // 少し遅らせて暗転解除
     setTimeout(() => {
       overlay.style.opacity = "0";
 
@@ -450,8 +442,15 @@ async function triggerStoryOutput() {
         overlay.removeEventListener("transitionend", handleFadeOut);
         overlay.style.pointerEvents = "none";
 
-        // ✅ カメラ映像を表示
+        // ✅ 怪談を出力
+        const generated = generateStoryTemplate();
+        console.log("🎃 出力テンプレート:", generated);
+        const box = document.getElementById("storyTemplate");
+        box.innerHTML = generated;
+        container.style.display = "block";
+
         videoGrid.style.display = "flex";
+        await startCameraForCurrentUser();
         await startCameraAndConnect();
       });
     }, 1000);
