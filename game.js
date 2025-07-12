@@ -709,3 +709,50 @@ async function fetchAndShowPlayers(retry = 0) {
     }
   }
 }
+const COMMON_LENGTH = 20;
+
+function generateStoryTemplate() {
+  const templates = [
+    `朝起きると、台所から[blank]の音が聞こえた。<br>
+     食卓にはいつも通り、[blank]が並んでいた。<br>
+     母は笑いながら「[blank]」と言った。<br>
+     でも、昨日も全く同じことを言っていた気がした。<br>
+     テレビをつけると、画面には[blank]がずっと映っていた。<br>
+     父が読んでいる新聞の日付が[blank]だった。<br>
+     そして、[blank]がリビングに降りてきた瞬間、私は黙って立ち上がった。<br>
+     だって、[blank]は、昨日の夜に[blank]から戻ってきていないはずだから。`,
+
+    `深夜、部屋の窓の外に[blank]が立っていた。<br>
+     なぜか手には[blank]を持っている。<br>
+     スマホを見ると、通知には「[blank]」とだけ書かれたメッセージ。<br>
+     時計の針は[blank]を指していた。<br>
+     階下からは[blank]の音。<br>
+     [blank]の名前を呼ぶ声が聞こえるが、そんな人は家にいない。`
+  ];
+
+  const selected = templates[Math.floor(Math.random() * templates.length)];
+
+  return selected.split("<br>").map(line =>
+    `<div class="line">${line.replace(/\[blank\]/g, () =>
+      `<input type="text" class="fill-blank" maxlength="${COMMON_LENGTH}" />`
+    )}</div>`
+  ).join("");
+}
+
+let storyAlreadyOutput = false;
+
+function triggerStoryOutput() {
+  if (storyAlreadyOutput) return;
+  storyAlreadyOutput = true;
+
+  const container = document.getElementById("textboxContainer");
+  const story = generateStoryTemplate();
+
+  container.innerHTML = `
+    <h2 style="font-size: 28px; margin-bottom: 20px;">あなたの怪談を完成させましょう</h2>
+    <div id="storyTemplate">${story}</div>
+  `;
+
+  container.style.display = "block";
+  window.scrollTo({ top: container.offsetTop, behavior: 'smooth' });
+}
