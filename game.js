@@ -256,6 +256,7 @@ async function gracefulShutdown() {
   }
 }
 
+// onAuthStateChanged を含むところ
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
     await signInAnonymously(auth);
@@ -267,13 +268,25 @@ onAuthStateChanged(auth, async (user) => {
 
   const uid = user.uid;
   currentUserId = uid;
-  
-  // ✅ 修正：スマートなクリーンアップ（プレイヤー情報は削除しない）
+
+  // 🔁 🔧 認証後にルームが存在するかを retry しながら確認する（最大10回）
+  for (let i = 0; i < 10; i++) {
+    const roomSnap = await get(ref(db, `rooms/${roomCode}`));
+    if (roomSnap.exists()) break;
+
+    console.warn(`🔁 [${i}] ルーム情報がまだ見つかりません。再試行中...`);
+    await new Promise(r => setTimeout(r, 500)); // 0.5秒待つ
+    if (i === 9) {
+      alert("ルーム情報が見つかりません（再接続失敗）");
+      window.location.href = "index.html";
+      return;
+    }
+  }
+
+  // この後に通常の処理を続行
   await smartCleanupSession(uid);
-  
-  // ✅ 修正：プレイヤー情報の適切な更新
   await updatePlayerInfo(uid);
-  
+
   const hostSnap = await get(ref(db, `rooms/${roomCode}/host`));
   const hostUID = hostSnap.exists() ? hostSnap.val() : null;
 
@@ -285,6 +298,7 @@ onAuthStateChanged(auth, async (user) => {
 
   startSceneFlow();
 });
+
 
 // 🔧 新規追加：beforeunloadイベント
 window.addEventListener("beforeunload", async (event) => {
