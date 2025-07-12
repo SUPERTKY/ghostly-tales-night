@@ -441,24 +441,21 @@ async function triggerStoryOutput() {
         overlay.removeEventListener("transitionend", handleFadeOut);
         overlay.style.pointerEvents = "none";
 
-        // ✅ 怪談を表示（これが昔の中身）
-        const story = generateStoryTemplate();
-        container.innerHTML = `
-          <h2 style="font-size: 28px; margin-bottom: 20px;">あなたの怪談を完成させましょう</h2>
-          <div id="storyTemplate">${story}</div>
-        `;
+        // ✅ 「見出しなし」で怪談テンプレートだけを表示
+        const storyHTML = generateStoryTemplate();
+        container.innerHTML = `<div id="storyTemplate">${storyHTML}</div>`;
         container.style.display = "block";
         window.scrollTo({ top: container.offsetTop, behavior: 'smooth' });
 
-        // ✅ もともとあった機能も残す（勝手に消していない）
+        // ✅ カメラ表示
         videoGrid.style.display = "flex";
-        await startCameraAndConnect();
+        await startCameraForCurrentUser();
       });
     }, 1000);
   });
+
+  await startCameraAndConnect();
 }
-
-
 
 const peerConnections = {};
 let localStream = null;
