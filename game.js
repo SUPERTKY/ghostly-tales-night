@@ -353,16 +353,21 @@ function startSceneFlow() {
 
   const onTransitionEnd = async () => {
     switch (step) {
-      case 0:
-        overlay.style.pointerEvents = "none";
-        await fetchAndShowPlayers();
-        step = 1;
+case 0:
+  overlay.style.pointerEvents = "none";
 
-        setTimeout(() => {
-          overlay.style.pointerEvents = "auto";
-          overlay.style.opacity = "1";
-        }, 3000);
-        break;
+  // 🔧 認証後の反映待ちのため、ここで delay を追加
+  setTimeout(async () => {
+    await fetchAndShowPlayers();
+  }, 500); // 500〜1000msが目安
+
+  step = 1;
+  setTimeout(() => {
+    overlay.style.pointerEvents = "auto";
+    overlay.style.opacity = "1";
+  }, 3000);
+  break;
+
 
       case 1:
         playerList.style.position = "absolute";
