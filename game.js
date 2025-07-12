@@ -434,6 +434,9 @@ async function triggerStoryOutput() {
     bottomUI.style.display = "none";
     playerList.style.display = "none";
 
+    // ✅ ここで穴埋め怪談を表示
+    triggerBlankStoryOutput();
+
     setTimeout(() => {
       overlay.style.opacity = "0";
       overlay.addEventListener("transitionend", async function handleFadeOut() {
@@ -445,6 +448,7 @@ async function triggerStoryOutput() {
     }, 1000);
   });
 }
+
 
 const peerConnections = {};
 let localStream = null;
