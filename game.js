@@ -738,4 +738,19 @@ function generateStoryTemplate() {
     )}</div>`
   ).join("");
 }
+function triggerBlankStoryOutput() {
+  if (storyAlreadyOutput) return;
+  storyAlreadyOutput = true;
+
+  const container = document.getElementById("textboxContainer");
+  const story = generateStoryTemplate();
+
+  container.innerHTML = `
+    <h2 style="font-size: 28px; margin-bottom: 20px;">あなたの怪談を完成させましょう</h2>
+    <div id="storyTemplate">${story}</div>
+  `;
+
+  container.style.display = "block";
+  window.scrollTo({ top: container.offsetTop, behavior: 'smooth' });
+}
 
