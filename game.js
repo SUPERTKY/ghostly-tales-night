@@ -434,20 +434,30 @@ async function triggerStoryOutput() {
     bottomUI.style.display = "none";
     playerList.style.display = "none";
 
-    // ✅ ここで穴埋め怪談を表示
-    triggerBlankStoryOutput();
-
     setTimeout(() => {
       overlay.style.opacity = "0";
+
       overlay.addEventListener("transitionend", async function handleFadeOut() {
         overlay.removeEventListener("transitionend", handleFadeOut);
         overlay.style.pointerEvents = "none";
+
+        // ✅ 怪談を表示（これが昔の中身）
+        const story = generateStoryTemplate();
+        container.innerHTML = `
+          <h2 style="font-size: 28px; margin-bottom: 20px;">あなたの怪談を完成させましょう</h2>
+          <div id="storyTemplate">${story}</div>
+        `;
+        container.style.display = "block";
+        window.scrollTo({ top: container.offsetTop, behavior: 'smooth' });
+
+        // ✅ もともとあった機能も残す（勝手に消していない）
         videoGrid.style.display = "flex";
         await startCameraAndConnect();
       });
     }, 1000);
   });
 }
+
 
 
 const peerConnections = {};
