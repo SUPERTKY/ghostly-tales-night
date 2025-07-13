@@ -392,6 +392,7 @@ case 0:
 
         textboxContainer.style.display = "block";
         bottomUI.style.display = "flex";
+        showStoryTemplate();
         startCountdown();
 
         readyButton.addEventListener("click", async () => {
@@ -429,6 +430,7 @@ case 0:
 }
 
 let storyAlreadyOutput = false;
+let currentStoryTemplate = ""; // store template to avoid regeneration
 async function triggerStoryOutput() {
   if (storyAlreadyOutput) return;
   storyAlreadyOutput = true;
@@ -457,10 +459,12 @@ async function triggerStoryOutput() {
         overlay.style.pointerEvents = "none";
 
         // ✅ 怪談を出力
-        const generated = generateStoryTemplate();
-        console.log("🎃 出力テンプレート:", generated);
-        const box = document.getElementById("storyTemplate");
-        box.innerHTML = generated;
+        if (!currentStoryTemplate) {
+          currentStoryTemplate = generateStoryTemplate();
+          console.log("🎃 出力テンプレート:", currentStoryTemplate);
+          const box = document.getElementById("storyTemplate");
+          box.innerHTML = currentStoryTemplate;
+        }
         container.style.display = "block";
 
         videoGrid.style.display = "flex";
@@ -762,16 +766,13 @@ function generateStoryTemplate() {
     .join("");
 }
 
-function triggerBlankStoryOutput() {
-  if (storyAlreadyOutput) return;
-  storyAlreadyOutput = true;
-
+function showStoryTemplate() {
   const container = document.getElementById("textboxContainer");
-  const story = generateStoryTemplate();
+  currentStoryTemplate = generateStoryTemplate();
 
   container.innerHTML = `
     <h2 style="font-size: 28px; margin-bottom: 20px;">あなたの怪談を完成させましょう</h2>
-    <div id="storyTemplate">${story}</div>
+    <div id="storyTemplate">${currentStoryTemplate}</div>
   `;
 
   container.style.display = "block";
