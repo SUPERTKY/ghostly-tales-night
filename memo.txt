@@ -1,4 +1,66 @@
-game.js:587 
- Uncaught ReferenceError: fromUID is not defined
-    at pc.ontrack (game.js:587:32)
-pc.ontrack	@	game.js:587
+`fromUID`が定義されていないエラーですね！コード内で変数名が異なっていました。
+
+## 🔧 **修正版（変数名を正しく対応）**## 🚨 **さらに確実な修正方法**
+
+元のコード構造に合わせて、最も安全な修正方法をお示しします：
+
+**元のコードの585行目付近**の：
+```javascript
+pc.ontrack = (event) => {
+```
+
+この部分を以下に置き換えてください：
+
+```javascript
+pc.ontrack = (event) => {
+  const stream = event.streams[0];
+  if (!stream) return;
+
+  // 🔧 remoteUIDを正しく取得
+  let remoteUID = null;
+  for (const [uid, connection] of Object.entries(peerConnections)) {
+    if (connection === pc) {
+      remoteUID = uid;
+      break;
+    }
+  }
+  
+  if (!remoteUID) {
+    console.warn("⚠️ remoteUIDが特定できません");
+    remoteUID = 'unknown_' + Date.now();
+  }
+
+  console.log("🎥 映像を受信 from", remoteUID);
+  
+  const videoGrid = document.getElementById("videoGrid");
+  videoGrid.style.display = "flex";
+
+  // 既存のビデオ要素を削除
+  const existingVideo = document.querySelector(`video[data-user-id="${remoteUID}"]`);
+  if (existingVideo) {
+    existingVideo.remove();
+  }
+
+  // 新しいビデオ要素を作成
+  const remoteVideo = document.createElement("video");
+  remoteVideo.setAttribute("data-user-id", remoteUID);
+  remoteVideo.autoplay = true;
+  remoteVideo.playsInline = true;
+  remoteVideo.muted = true;
+  remoteVideo.style.width = "200px";
+  remoteVideo.style.height = "150px";
+  remoteVideo.style.margin = "10px";
+  remoteVideo.style.border = "3px solid #00ff00";
+
+  // ストリームを設定
+  remoteVideo.srcObject = stream;
+  videoGrid.appendChild(remoteVideo);
+
+  // 再生を試行
+  remoteVideo.play().catch(err => {
+    console.warn("⚠️ 自動再生失敗:", err);
+  });
+};
+```
+
+この修正で、相手のカメラが表示されるはずです！
