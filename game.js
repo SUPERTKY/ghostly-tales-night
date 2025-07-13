@@ -1,3 +1,4 @@
+
 // Firebaseモジュール読み込み
 import {
   initializeApp,
@@ -487,6 +488,9 @@ async function startCameraAndConnect() {
     
     localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
 
+    const videoGrid = document.getElementById("videoGrid");
+    videoGrid.style.display = "flex"; // 🎥 ビデオ領域を表示
+
     const video = document.createElement("video");
     video.srcObject = localStream;
     video.autoplay = true;
@@ -495,7 +499,7 @@ async function startCameraAndConnect() {
     video.style.width = "200px";
     video.style.height = "150px";
     video.style.margin = "10px";
-    document.getElementById("videoGrid").appendChild(video);
+    videoGrid.appendChild(video);
     await video.play().catch(e => console.warn("ローカル再生エラー:", e));
 
     console.log("📷 ローカルカメラ取得完了");
@@ -555,6 +559,9 @@ async function createConnectionWith(remoteUID) {
       console.log(`📺 ${remoteUID}の既存ビデオ要素を削除しました`);
     }
     
+    const videoGrid = document.getElementById("videoGrid");
+    videoGrid.style.display = "flex"; // 🎥 リモート映像表示用に表示
+
     const remoteVideo = document.createElement("video");
     remoteVideo.setAttribute("data-user-id", remoteUID); // 🔧 追加：識別子を追加
     remoteVideo.srcObject = event.streams[0];
@@ -563,7 +570,7 @@ async function createConnectionWith(remoteUID) {
     remoteVideo.style.width = "200px";
     remoteVideo.style.height = "150px"; // 🔧 追加：高さも指定
     remoteVideo.style.margin = "10px";
-    document.getElementById("videoGrid").appendChild(remoteVideo);
+    videoGrid.appendChild(remoteVideo);
     remoteVideo.play().catch(e => console.warn("再生エラー:", e));
   };
 
@@ -785,3 +792,4 @@ function showStoryTemplate() {
   container.style.display = "block";
   window.scrollTo({ top: container.offsetTop, behavior: 'smooth' });
 }
+
