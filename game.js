@@ -509,8 +509,12 @@ async function startCameraAndConnect() {
     const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
     const players = playersSnap.val();
 
+    const myUID = auth.currentUser.uid;
     for (const uid in players) {
-      if (uid !== auth.currentUser.uid) {
+      if (uid === myUID) continue;
+
+      // 自分のUIDの方が小さい場合のみ Offer を送信
+      if (myUID < uid) {
         console.log("🛰️ 接続開始 to:", uid);
         await createConnectionWith(uid);
       }
