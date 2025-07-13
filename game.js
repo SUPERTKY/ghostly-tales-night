@@ -588,12 +588,12 @@ pc.ontrack = (event) => {
   // 🔧 修正：remoteUIDを正しく特定
   const remoteUID = Object.keys(peerConnections).find(uid => peerConnections[uid] === pc) || 'unknown';
   
-  const track = stream?.getVideoTracks?.[0];
+  const track = stream.getVideoTracks()[0];
   console.log("🎥 映像を受信 from", remoteUID);
   console.log("📺 stream:", stream);
-  console.log("📺 videoTrack state:", track?.readyState);
-  console.log("📺 videoTrack enabled:", track?.enabled);
-  console.log("📺 videoTrack label:", track?.label);
+console.log("📺 videoTrack state:", track ? track.readyState : 'トラックなし');
+console.log("📺 videoTrack enabled:", track ? track.enabled : 'トラックなし');
+console.log("📺 videoTrack label:", track ? track.label : 'トラックなし');
   console.log("📺 stream track count:", stream.getTracks().length);
 
   const videoGrid = document.getElementById("videoGrid");
