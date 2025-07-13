@@ -1,5 +1,6 @@
 
 
+
 // Firebaseモジュール読み込み
 import {
   initializeApp,
@@ -474,6 +475,7 @@ async function triggerStoryOutput() {
 
 
 const peerConnections = {};
+const remoteStreams = {};
 let localStream = null;
 let cameraStarted = false;
 
@@ -574,27 +576,31 @@ async function createConnectionWith(remoteUID) {
 
   pc.ontrack = (event) => {
     console.log("🎥 映像を受信 from", remoteUID);
-    
-    // 🔧 追加：既存のビデオ要素があれば削除
-    const existingVideo = document.querySelector(`[data-user-id="${remoteUID}"]`);
-    if (existingVideo) {
-      existingVideo.remove();
-      console.log(`📺 ${remoteUID}の既存ビデオ要素を削除しました`);
-    }
-    
-    const videoGrid = document.getElementById("videoGrid");
-    videoGrid.style.display = "flex"; // 🎥 リモート映像表示用に表示
 
-    const remoteVideo = document.createElement("video");
-    remoteVideo.setAttribute("data-user-id", remoteUID); // 🔧 追加：識別子を追加
-    remoteVideo.srcObject = event.streams[0];
-    remoteVideo.autoplay = true;
-    remoteVideo.playsInline = true;
-    remoteVideo.style.width = "200px";
-    remoteVideo.style.height = "150px"; // 🔧 追加：高さも指定
-    remoteVideo.style.margin = "10px";
-    videoGrid.appendChild(remoteVideo);
-    remoteVideo.play().catch(e => console.warn("再生エラー:", e));
+    // MediaStream を準備
+    let remoteStream = remoteStreams[remoteUID];
+    if (!remoteStream) {
+      remoteStream = new MediaStream();
+      remoteStreams[remoteUID] = remoteStream;
+
+      const videoGrid = document.getElementById("videoGrid");
+      videoGrid.style.display = "flex";
+
+      const remoteVideo = document.createElement("video");
+      remoteVideo.setAttribute("data-user-id", remoteUID);
+      remoteVideo.autoplay = true;
+      remoteVideo.playsInline = true;
+      remoteVideo.style.width = "200px";
+      remoteVideo.style.height = "150px";
+      remoteVideo.style.margin = "10px";
+      remoteVideo.srcObject = remoteStream;
+      videoGrid.appendChild(remoteVideo);
+      remoteVideo.play().catch(e => console.warn("再生エラー:", e));
+    }
+
+    event.streams[0].getTracks().forEach(track => {
+      remoteStream.addTrack(track);
+    });
   };
 
   pc.onicecandidate = (event) => {
@@ -652,28 +658,34 @@ pc.ontrack = (event) => {
   console.log("📺 videoTrack label:", track?.label);         // カメラ名など
   console.log("📺 stream track count:", stream.getTracks().length);
 
-  const remoteVideo = document.createElement("video");
-  remoteVideo.srcObject = stream;
-  remoteVideo.autoplay = true;
-  remoteVideo.playsInline = true;
-  remoteVideo.style.width = "200px";
-  remoteVideo.style.height = "150px";
-  remoteVideo.style.margin = "10px";
+  let remoteStream = remoteStreams[fromUID];
+  let remoteVideo = document.querySelector(`[data-user-id="${fromUID}"]`);
 
-  remoteVideo.onloadedmetadata = () => {
-    console.log("📐 onloadedmetadata - width:", remoteVideo.videoWidth, "height:", remoteVideo.videoHeight);
-  };
+  if (!remoteStream) {
+    remoteStream = new MediaStream();
+    remoteStreams[fromUID] = remoteStream;
 
-  remoteVideo.onplay = () => {
-    console.log("▶️ remoteVideo.play() 発火");
-  };
+    if (!remoteVideo) {
+      remoteVideo = document.createElement("video");
+      remoteVideo.setAttribute("data-user-id", fromUID);
+      remoteVideo.autoplay = true;
+      remoteVideo.playsInline = true;
+      remoteVideo.style.width = "200px";
+      remoteVideo.style.height = "150px";
+      remoteVideo.style.margin = "10px";
+      document.getElementById("videoGrid").appendChild(remoteVideo);
+    }
 
-  remoteVideo.onerror = (e) => {
-    console.warn("⚠️ remoteVideo エラー:", e);
-  };
+    remoteVideo.srcObject = remoteStream;
+    remoteVideo.play().catch(e => console.warn("再生エラー:", e));
+  } else if (remoteVideo && !remoteVideo.srcObject) {
+    remoteVideo.srcObject = remoteStream;
+    remoteVideo.play().catch(e => console.warn("再生エラー:", e));
+  }
 
-  document.getElementById("videoGrid").appendChild(remoteVideo);
-  remoteVideo.play().catch(e => console.warn("再生エラー:", e));
+  stream.getTracks().forEach(track => {
+    remoteStream.addTrack(track);
+  });
 };
 
 
