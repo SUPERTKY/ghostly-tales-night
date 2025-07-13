@@ -1,1 +1,28 @@
-game.js:834  ⚠️ play() 失敗: AbortError: The play() request was interrupted because the media was removed from the document
+いい進展です！🎉 エラーが変わりました。今度は**ビデオ再生の問題**です。
+
+## 🎯 **問題の分析**
+
+このエラー `AbortError: The play() request was interrupted because the media was removed from the document` は：
+- ✅ WebRTC接続は成功している
+- ✅ 相手の映像は受信している  
+- ❌ ビデオ要素が再生前にDOMから削除されている
+
+**原因**: 複数回`ontrack`が呼ばれて、前のビデオ要素を削除している間に再生しようとしている
+
+## 🔧 **修正版コード**
+
+834行目付近の`remoteVideo.play()`部分を以下で置き換えてください：## 📝 **修正手順**
+
+1. **834行目付近**で`remoteVideo.play()`から始まる部分を探す
+2. **ビデオ要素の作成・追加・再生の部分**を上記のコードで置き換える
+3. **ページを再読み込み**
+
+## 🎯 **修正のポイント**
+
+- `autoplay = false`に変更して手動制御
+- 既存要素の削除を安全に実行
+- `setTimeout`で削除と作成の間に間隔を設ける
+- `onloadedmetadata`イベントで再生タイミングを制御
+- 再生失敗時は手動ボタンを表示
+
+この修正で、相手のカメラが安定して表示されるはずです！緑枠のビデオが表示されますか？
