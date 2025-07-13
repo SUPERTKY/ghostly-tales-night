@@ -1,28 +1,76 @@
-いい進展です！🎉 エラーが変わりました。今度は**ビデオ再生の問題**です。
+修正箇所を明確にお示しします！
 
-## 🎯 **問題の分析**
+## 🎯 **修正箇所の特定**
 
-このエラー `AbortError: The play() request was interrupted because the media was removed from the document` は：
-- ✅ WebRTC接続は成功している
-- ✅ 相手の映像は受信している  
-- ❌ ビデオ要素が再生前にDOMから削除されている
+**game.js の834行目付近**で、以下のような部分を探してください：
 
-**原因**: 複数回`ontrack`が呼ばれて、前のビデオ要素を削除している間に再生しようとしている
+```javascript
+// DOMに追加
+videoGrid.appendChild(remoteVideo);
+console.log(`📺 ${remoteUID}のビデオ要素をDOMに追加`);
 
-## 🔧 **修正版コード**
+// 再生を試行
+remoteVideo.play()
+  .then(() => {
+    console.log(`✅ ${remoteUID}のビデオ再生成功`);
+  })
+  .catch(err => {
+    console.warn(`⚠️ ${remoteUID}のビデオ再生失敗:`, err);
+    // 手動再生ボタンを追加
+    // ... ボタン作成のコード
+  });
+```
 
-834行目付近の`remoteVideo.play()`部分を以下で置き換えてください：## 📝 **修正手順**
+## 🔧 **最小限の修正**
 
-1. **834行目付近**で`remoteVideo.play()`から始まる部分を探す
-2. **ビデオ要素の作成・追加・再生の部分**を上記のコードで置き換える
-3. **ページを再読み込み**
+**上記の部分を以下に置き換えてください**：
 
-## 🎯 **修正のポイント**
+```javascript
+// DOMに追加
+videoGrid.appendChild(remoteVideo);
+console.log(`📺 ${remoteUID}のビデオ要素をDOMに追加`);
 
-- `autoplay = false`に変更して手動制御
-- 既存要素の削除を安全に実行
-- `setTimeout`で削除と作成の間に間隔を設ける
-- `onloadedmetadata`イベントで再生タイミングを制御
-- 再生失敗時は手動ボタンを表示
+// 🔧 修正：安定した再生のため少し待機
+setTimeout(() => {
+  remoteVideo.play()
+    .then(() => {
+      console.log(`✅ ${remoteUID}のビデオ再生成功`);
+    })
+    .catch(err => {
+      console.warn(`⚠️ ${remoteUID}のビデオ再生失敗:`, err);
+      
+      // 手動再生ボタンを追加
+      const playBtn = document.createElement("button");
+      playBtn.textContent = "▶️ 映像を再生";
+      playBtn.style.margin = "10px";
+      playBtn.style.padding = "10px";
+      playBtn.style.backgroundColor = "#00ff00";
+      playBtn.style.border = "none";
+      playBtn.style.borderRadius = "5px";
+      playBtn.style.cursor = "pointer";
+      
+      playBtn.onclick = () => {
+        remoteVideo.play().then(() => {
+          playBtn.remove();
+          console.log("✅ 手動再生成功");
+        });
+      };
+      
+      videoGrid.appendChild(playBtn);
+    });
+}, 200); // 200ms待機
+```
 
-この修正で、相手のカメラが安定して表示されるはずです！緑枠のビデオが表示されますか？
+## 📍 **さらに簡単な方法**
+
+**または、834行目の1行だけを変更**：
+
+```javascript
+// 元の行
+remoteVideo.play()
+
+// 以下に変更
+setTimeout(() => remoteVideo.play(), 200)
+```
+
+これだけでも、`AbortError`は解決されるはずです。どちらの方法で修正されますか？
