@@ -1,1 +1,41 @@
-Warning: Don’t paste code into the DevTools Console that you don’t understand or haven’t reviewed yourself. This could allow attackers to steal your identity or take control of your computer. Please type ‘allow pasting’ below and press Enter to allow pasting.
+この警告は、ブラウザのセキュリティ機能です。安全にデバッグを進めるために、以下の手順で実行してください：
+
+## 🔒 **安全なデバッグ手順**
+
+1. **コンソールで以下を入力**：
+   ```
+   allow pasting
+   ```
+   （Enterキーを押す）
+
+2. **または、手動で以下のコードを入力**（コピペではなく手入力）：
+   ```javascript
+   console.log("=== 基本確認 ===");
+   console.log("currentUserId:", currentUserId);
+   console.log("peerConnections:", Object.keys(peerConnections));
+   console.log("ビデオ要素数:", document.querySelectorAll('video').length);
+   ```
+
+3. **さらに詳細を確認したい場合**：
+   ```javascript
+   document.querySelectorAll('video').forEach((v, i) => {
+     console.log(`ビデオ${i+1}:`, v.getAttribute('data-user-id') || 'ローカル');
+   });
+   ```
+
+## 📝 **簡単な確認方法**
+
+デバッグコードを使わずに、以下を目視で確認してください：
+
+1. **画面上のビデオ要素数**：
+   - 自分だけ → 1個のビデオ要素
+   - 自分+相手 → 2個のビデオ要素が表示されるはず
+
+2. **ビデオの枠色**（修正版コードを適用した場合）：
+   - 青枠 = 自分のカメラ
+   - 緑枠 = 相手のカメラ
+
+3. **コンソールログ**：
+   - F12 → Console タブで、エラーメッセージがないか確認
+
+現在、画面上にビデオは何個表示されていますか？また、コンソールに何かエラーメッセージは出ていますか？
