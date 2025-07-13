@@ -1,20 +1,48 @@
+修正がまだ適用されていないようですね。587行目で`fromUID`エラーが続いています。
 
-game.js:53 🔍 セッション状態を確認中...
-game.js:82 🧹 古いシグナリング情報のみ削除中...
-game.js:87 ✅ 古いシグナリング情報クリーンアップ完了
-game.js:151 👤 プレイヤー情報を更新中...
-game.js:162 📝 既存のプレイヤー情報を保持
-game.js:182 ✅ プレイヤー情報更新完了
-game.js:197 🔌 WebRTC接続をクリーンアップ中...
-game.js:228 📺 ビデオ要素をクリアしました
-game.js:511 📷 ローカルカメラ取得完了
-game.js:546 🛰️ カメラ準備完了を検知、接続開始 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-5game.js:693 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:709 📡 Offer 送信完了 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:792 📨 Offer 受信 from: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:587  Uncaught ReferenceError: fromUID is not defined
-    at pc.ontrack (game.js:587:32)
-5game.js:693 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:811 📨 Answer 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-4game.js:693 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:487 📷 カメラは既に起動しています
+## 🔍 **問題の特定**
+
+ログを見ると、WebRTC接続は正常に動作していますが、**2箇所の`pc.ontrack`**があるようです：
+- 587行目（エラーが出ている箇所）
+- 別の箇所（修正済み？）
+
+## 🔧 **確実な修正方法**
+
+**587行目付近**を直接修正しましょう。以下の手順で確実に修正してください：
+
+### 手順1: 587行目を特定
+ファイルの587行目付近で、以下のような行を探してください：
+```javascript
+console.log("🎥 映像を受信 from", fromUID);
+```
+
+### 手順2: この1行だけを置き換え
+```javascript
+// 元の行（587行目）
+console.log("🎥 映像を受信 from", fromUID);
+
+// 以下に置き換え
+const remoteUID = Object.keys(peerConnections).find(uid => peerConnections[uid] === pc) || 'unknown';
+console.log("🎥 映像を受信 from", remoteUID);
+```
+
+### 手順3: 同じ関数内の他の`fromUID`も置き換え
+587行目の`pc.ontrack`関数内で、`fromUID`が使われている**すべての行**を`remoteUID`に変更してください。
+
+## 📝 **または、検索置換で一括修正**
+
+エディタの検索置換機能（Ctrl+H）で：
+- **検索**: `fromUID`
+- **置換**: `remoteUID`
+- **適用範囲**: 587行目付近の`pc.ontrack`関数内のみ
+
+## 🚨 **緊急修正版**
+
+もし上記が難しい場合は、587行目の`console.log`行を以下のように一時的に変更してください：
+
+```javascript
+// 587行目を以下に変更（一時的な修正）
+console.log("🎥 映像を受信");  // fromUID部分を削除
+```
+
+これでエラーは止まり、相手のカメラが表示されるはずです。修正後、ページを再読み込みしてテストしてください！
