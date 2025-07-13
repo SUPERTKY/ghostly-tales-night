@@ -1,76 +1,34 @@
- action SET_STORAGE_DATA @ 21:00:27.337
-BlockingPageContent.js:2  prev state Object
-BlockingPageContent.js:2  action     Object
-BlockingPageContent.js:2  next state Object
-chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/notification.json:1   Failed to load resource: net::ERR_FILE_NOT_FOUND
-chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/internalPages.json:1   Failed to load resource: net::ERR_FILE_NOT_FOUND
-chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/popup.json:1   Failed to load resource: net::ERR_FILE_NOT_FOUND
-NotificationContent.js:2  action SET_LOCALE @ 21:00:27.341
-NotificationContent.js:2  prev state Object
-NotificationContent.js:2  action     Object
-NotificationContent.js:2  next state Object
-NotificationContent.js:2  action SET_STORAGE_DATA @ 21:00:27.343
-NotificationContent.js:2  prev state Object
-NotificationContent.js:2  action     Object
-NotificationContent.js:2  next state Object
-game.js:53 🔍 セッション状態を確認中...
-game.js:82 🧹 古いシグナリング情報のみ削除中...
-game.js:87 ✅ 古いシグナリング情報クリーンアップ完了
-game.js:151 👤 プレイヤー情報を更新中...
-game.js:162 📝 既存のプレイヤー情報を保持
-game.js:182 ✅ プレイヤー情報更新完了
-game.js:197 🔌 WebRTC接続をクリーンアップ中...
-game.js:228 📺 ビデオ要素をクリアしました
-game.js:511 📷 ローカルカメラ取得完了
-game.js:546 🛰️ カメラ準備完了を検知、接続開始 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-5game.js:621 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:720 📨 Offer 受信 from: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:669 🎥 映像を受信 from ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:670 📺 stream: MediaStream
-game.js:671 📺 videoTrack state: live
-game.js:672 📺 videoTrack enabled: true
-game.js:673 📺 videoTrack label: c279bdb1-1c5d-4966-ab11-c4b538349619
-game.js:674 📺 stream track count: 1
-game.js:637 📡 Offer 送信完了 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:720 📨 Offer 受信 from: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:585 🎥 映像を受信 from ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:705  ⚠️ play() 失敗: AbortError: The play() request was interrupted by a new load request.
-(anonymous) @ game.js:705
-5game.js:711 ❄ ICE candidate 返信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-5game.js:621 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-2game.js:739 📨 Answer 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-4game.js:711 ❄ ICE candidate 返信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-4game.js:621 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:487 📷 カメラは既に起動しています
-game.js:316  ⚠️ ページが非表示になりました（タブ切り替えなど）
-(anonymous) @ game.js:316
-game.js:320 👁️ ページが再表示されました
-allow pasting
-VM116:1 Uncaught SyntaxError: Unexpected identifier 'pasting'
-game.js:316  ⚠️ ページが非表示になりました（タブ切り替えなど）
-(anonymous) @ game.js:316
-game.js:320 👁️ ページが再表示されました
-game.js:316  ⚠️ ページが非表示になりました（タブ切り替えなど）
-(anonymous) @ game.js:316
-game.js:320 👁️ ページが再表示されました
-```javascript
-console.log("auth:", typeof auth);
-console.log("auth.currentUser:", auth?.currentUser?.uid);
-console.log("roomCode:", typeof roomCode !== 'undefined' ? roomCode : 'undefined');
-```
-VM120:1 Uncaught TypeError: "" is not a function
-    at <anonymous>:1:3
-(anonymous) @ VM120:1
-game.js:316  ⚠️ ページが非表示になりました（タブ切り替えなど）
-(anonymous) @ game.js:316
-game.js:320 👁️ ページが再表示されました
-console.log("auth:", typeof auth);
-console.log("auth.currentUser:", auth?.currentUser?.uid);
-console.log("roomCode:", typeof roomCode !== 'undefined' ? roomCode : 'undefined');
-VM124:1 auth: undefined
-VM124:2 Uncaught ReferenceError: auth is not defined
-    at <anonymous>:2:34
-(anonymous) @ VM124:2
-game.js:316  ⚠️ ページが非表示になりました（タブ切り替えなど）
-(anonymous) @ game.js:316
-game.js:320 👁️ ページが再表示されました
+素晴らしい！ログを見ると、WebRTC接続は**正常に動作**しています！🎉
+
+## 🎯 **問題の特定**
+
+ログから以下が確認できます：
+- ✅ WebRTC接続が確立されている
+- ✅ 相手からの映像を受信している（`🎥 映像を受信 from ISP6sDMWS7NbwJtUykQSqhhzp2V2`）
+- ⚠️ **ビデオ再生に失敗**している（`⚠️ play() 失敗: AbortError`）
+
+**原因**: ビデオストリームは受信できているが、ビデオ要素の作成と表示に問題があります。
+
+## 🔧 **即座に試せる修正**
+
+以下のコードを元のコードの該当部分と**置き換え**してください：## 📝 **修正手順**
+
+1. **元のコードの585行目付近**にある以下の部分：
+   ```javascript
+   pc.ontrack = (event) => {
+     // ... 既存のコード
+   };
+   ```
+   
+2. **上記の修正版コード**に置き換えてください
+
+3. **ページを再読み込み**して、再度テストしてください
+
+## 🎯 **期待される結果**
+
+修正後は以下が表示されるはずです：
+- **青枠のビデオ**: あなたのカメラ
+- **緑枠のビデオ**: 相手のカメラ
+- 自動再生に失敗した場合は「再生ボタン」が表示される
+
+この修正で相手のカメラが表示されるようになりますか？
