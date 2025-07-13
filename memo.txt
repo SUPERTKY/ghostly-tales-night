@@ -1,3 +1,5 @@
-VM98:1 Uncaught TypeError: "" is not a function
-    at <anonymous>:1:4
-(anonymous)	@	VM98:1
+VM104:10 Uncaught ReferenceError: currentUserId is not defined
+    at debugWebRTCStatus (<anonymous>:10:35)
+    at <anonymous>:89:1
+debugWebRTCStatus	@	VM104:10
+(anonymous)	@	VM104:89
