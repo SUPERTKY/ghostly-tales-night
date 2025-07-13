@@ -507,24 +507,42 @@ async function startCameraAndConnect() {
     await set(ref(db, `rooms/${roomCode}/players/${auth.currentUser.uid}/cameraReady`), true);
 
     const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
-    const players = playersSnap.val();
+    const players = playersSnap.val() || {};
 
     const myUID = auth.currentUser.uid;
-    for (const uid in players) {
+    for (const [uid, info] of Object.entries(players)) {
       if (uid === myUID) continue;
 
-      // 自分のUIDの方が小さい場合のみ Offer を送信
-      if (myUID < uid) {
+      // 両者のカメラ準備が整い、かつ自分のUIDが小さい場合のみ Offer を送信
+      if (info.cameraReady && myUID < uid) {
         console.log("🛰️ 接続開始 to:", uid);
         await createConnectionWith(uid);
       }
     }
 
     listenForSignals();
+    listenForCameraReadyPlayers();
   } catch (err) {
     console.error("カメラ取得エラー:", err);
     alert("カメラの許可が必要です。他のアプリを閉じてください。");
   }
+}
+
+function listenForCameraReadyPlayers() {
+  const myUID = auth.currentUser.uid;
+  const playersRef = ref(db, `rooms/${roomCode}/players`);
+
+  onValue(playersRef, async (snapshot) => {
+    const players = snapshot.val() || {};
+    for (const [uid, info] of Object.entries(players)) {
+      if (uid === myUID) continue;
+
+      if (info.cameraReady && myUID < uid && !peerConnections[uid]) {
+        console.log("🛰️ カメラ準備完了を検知、接続開始 to:", uid);
+        await createConnectionWith(uid);
+      }
+    }
+  });
 }
 
 
