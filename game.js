@@ -619,7 +619,7 @@ console.log("📺 videoTrack label:", track ? track.label : 'トラックなし'
   remoteVideo.style.borderRadius = "8px";
 
   // ストリームを直接設定
-  remoteVideo.srcObject = stream;
+ remoteVideo.load(); // 追加
   
   // DOMに追加
   videoGrid.appendChild(remoteVideo);
