@@ -1,106 +1,40 @@
-BlockingPageContent.js:2  action SET_STORAGE_DATA @ 21:32:14.569
-BlockingPageContent.js:2  prev state {blocking: false}
-BlockingPageContent.js:2  action     {type: 'SET_STORAGE_DATA', urls: {…}, online: true, eula: true, welcome: true, …}
-BlockingPageContent.js:2  next state {blocking: false}
-NotificationContent.js:2   GET chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/notification.json net::ERR_FILE_NOT_FOUND
-t.default @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-a @ NotificationContent.js:2
-value @ NotificationContent.js:2
-c @ NotificationContent.js:2
-setTimeout
-value @ NotificationContent.js:2
-bn @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-value @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-Promise.then
-(anonymous) @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-NotificationContent.js:2   GET chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/internalPages.json net::ERR_FILE_NOT_FOUND
-t.default @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-a @ NotificationContent.js:2
-value @ NotificationContent.js:2
-c @ NotificationContent.js:2
-setTimeout
-value @ NotificationContent.js:2
-bn @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-value @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-Promise.then
-(anonymous) @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-NotificationContent.js:2   GET chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/popup.json net::ERR_FILE_NOT_FOUND
-t.default @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-value @ NotificationContent.js:2
-a @ NotificationContent.js:2
-value @ NotificationContent.js:2
-c @ NotificationContent.js:2
-setTimeout
-value @ NotificationContent.js:2
-bn @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-value @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-Promise.then
-(anonymous) @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-(anonymous) @ NotificationContent.js:2
-NotificationContent.js:2  action SET_LOCALE @ 21:32:14.581
-NotificationContent.js:2  prev state {notification: false, locale: '', mode: '', os: '', browser: '', …}
-NotificationContent.js:2  action     {type: 'SET_LOCALE', locale: 'ja'}
-NotificationContent.js:2  next state {notification: false, locale: 'ja', mode: '', os: '', browser: '', …}
-NotificationContent.js:2  action SET_STORAGE_DATA @ 21:32:14.587
-NotificationContent.js:2  prev state {notification: false, locale: 'ja', mode: '', os: '', browser: '', …}
-NotificationContent.js:2  action     {type: 'SET_STORAGE_DATA', urls: {…}, online: true, eula: true, welcome: true, …}
-NotificationContent.js:2  next state {notification: false, locale: 'ja', mode: 'Promoter', os: 'win', browser: 'msedge', …}
-game.js:53 🔍 セッション状態を確認中...
-game.js:82 🧹 古いシグナリング情報のみ削除中...
-game.js:87 ✅ 古いシグナリング情報クリーンアップ完了
-game.js:151 👤 プレイヤー情報を更新中...
-game.js:162 📝 既存のプレイヤー情報を保持
-game.js:182 ✅ プレイヤー情報更新完了
-game.js:197 🔌 WebRTC接続をクリーンアップ中...
-game.js:228 📺 ビデオ要素をクリアしました
-game.js:511 📷 ローカルカメラ取得完了
-game.js:546 🛰️ カメラ準備完了を検知、接続開始 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-5game.js:750 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:766 📡 Offer 送信完了 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:806 📨 Offer 受信 from: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:592 🎥 映像を受信 from ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:593 📺 stream: MediaStream {id: '1a2fd6f5-0d45-46f1-997d-185f24c7f68f', active: true, onaddtrack: null, onremovetrack: null, onactive: null, …}
-game.js:594 📺 videoTrack state: undefined
-game.js:595 📺 videoTrack enabled: undefined
-game.js:596 📺 videoTrack label: undefined
-game.js:597 📺 stream track count: 1
-game.js:626 📺 ISP6sDMWS7NbwJtUykQSqhhzp2V2のビデオ要素をDOMに追加
-game.js:634 ▶️ ISP6sDMWS7NbwJtUykQSqhhzp2V2のビデオ再生開始
-5game.js:750 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:825 📨 Answer 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-4game.js:750 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
-game.js:487 📷 カメラは既に起動しています
+素晴らしい！🎉 ログを見ると**WebRTC接続は完全に成功**しています！
+
+## ✅ **成功している点**
+
+- ✅ `🎥 映像を受信 from ISP6sDMWS7NbwJtUykQSqhhzp2V2`
+- ✅ `📺 ISP6sDMWS7NbwJtUykQSqhhzp2V2のビデオ要素をDOMに追加`
+- ✅ `▶️ ISP6sDMWS7NbwJtUykQSqhhzp2V2のビデオ再生開始`
+- ✅ エラーが消えた！
+
+## 🔍 **現在の状況確認**
+
+**ページを見て確認してください**：
+
+1. **ビデオが2個表示されていますか？**
+   - 1個 = 自分のカメラ（枠なし）
+   - 1個 = 相手のカメラ（緑枠）
+
+2. **もしビデオが1個しか見えない場合**は、以下をお試しください：
+
+```javascript
+// コンソールで実行して確認
+console.log("ビデオ要素数:", document.querySelectorAll('video').length);
+document.querySelectorAll('video').forEach((v, i) => {
+  console.log(`ビデオ${i+1}:`, {
+    userId: v.getAttribute('data-user-id') || 'ローカル',
+    border: v.style.border,
+    width: v.videoWidth,
+    height: v.videoHeight
+  });
+});
+```
+
+## 🎯 **期待される結果**
+
+正常に動作している場合：
+- **ビデオ要素数: 2**
+- **ビデオ1: ローカル（自分）** - border: ""
+- **ビデオ2: ISP6sDMWS7NbwJtUykQSqhhzp2V2（相手）** - border: "3px solid #00ff00"
+
+**現在、画面上にビデオはいくつ表示されていますか？** また、緑枠のビデオは見えていますか？
