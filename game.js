@@ -309,22 +309,10 @@ window.addEventListener("beforeunload", async (event) => {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden" && !isPageUnloading) {
     console.warn("⚠️ ページが非表示になりました（タブ切り替えなど）");
-    // 🔧 修正：強制的にページ移動はしない
-    // window.location.href = "index.html"; // この行をコメントアウト
-    
-    // 必要に応じて一時停止処理
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      console.log("⏸️ タイマーを一時停止しました");
-    }
+    // 以前はここでタイマーを停止していましたが、
+    // タブを切り替えてもタイマーが止まらないように変更
   } else if (document.visibilityState === "visible") {
     console.log("👁️ ページが再表示されました");
-    
-    // タイマー再開処理
-    if (timerStarted && !timerInterval && remainingSeconds > 0) {
-      startCountdown();
-      console.log("▶️ タイマーを再開しました");
-    }
   }
 });
 
@@ -392,6 +380,7 @@ case 0:
 
         textboxContainer.style.display = "block";
         bottomUI.style.display = "flex";
+        showStoryTemplate();
         startCountdown();
 
         readyButton.addEventListener("click", async () => {
@@ -399,6 +388,9 @@ case 0:
           if (!uid) return;
           await set(ref(db, `rooms/${roomCode}/players/${uid}/ready`), true);
           readyButton.classList.add("disabled");
+          if (!cameraStarted) {
+            await startCameraAndConnect();
+          }
         });
 
         onValue(ref(db, `rooms/${roomCode}/players`), (snapshot) => {
@@ -407,6 +399,11 @@ case 0:
 
           const allReady = Object.values(players).every(p => p.ready);
           if (allReady) {
+            if (timerInterval) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+              timerStarted = false;
+            }
             triggerStoryOutput();
           }
         });
@@ -429,6 +426,7 @@ case 0:
 }
 
 let storyAlreadyOutput = false;
+let currentStoryTemplate = ""; // store template to avoid regeneration
 async function triggerStoryOutput() {
   if (storyAlreadyOutput) return;
   storyAlreadyOutput = true;
@@ -456,15 +454,16 @@ async function triggerStoryOutput() {
         overlay.removeEventListener("transitionend", handleFadeOut);
         overlay.style.pointerEvents = "none";
 
-        // ✅ 怪談を出力
-        const generated = generateStoryTemplate();
-        console.log("🎃 出力テンプレート:", generated);
-        const box = document.getElementById("storyTemplate");
-        box.innerHTML = generated;
-        container.style.display = "block";
+        // ✅ 怪談を出力（テンプレートは保持のみ）
+        if (!currentStoryTemplate) {
+          currentStoryTemplate = generateStoryTemplate();
+          console.log("🎃 出力テンプレート:", currentStoryTemplate);
+        }
+
+        container.innerHTML = "";
+        container.style.display = "none";
 
         videoGrid.style.display = "flex";
-        await startCameraForCurrentUser();
         await startCameraAndConnect();
       });
     }, 1000);
@@ -474,8 +473,14 @@ async function triggerStoryOutput() {
 
 const peerConnections = {};
 let localStream = null;
+let cameraStarted = false;
 
 async function startCameraAndConnect() {
+  if (cameraStarted) {
+    console.log("📷 カメラは既に起動しています");
+    return;
+  }
+  cameraStarted = true;
   try {
     // 🔧 追加：開始前に既存の接続をクリーンアップ
     await cleanupWebRTCConnections();
@@ -763,16 +768,18 @@ function generateStoryTemplate() {
     .join("");
 }
 
-function triggerBlankStoryOutput() {
-  if (storyAlreadyOutput) return;
-  storyAlreadyOutput = true;
-
+function showStoryTemplate() {
   const container = document.getElementById("textboxContainer");
-  const story = generateStoryTemplate();
+  const playerList = document.getElementById("playerList");
+  const actionTitle = document.getElementById("actionTitle");
+  currentStoryTemplate = generateStoryTemplate();
+
+  if (playerList) playerList.style.display = "none";
+  if (actionTitle) actionTitle.style.display = "none";
 
   container.innerHTML = `
     <h2 style="font-size: 28px; margin-bottom: 20px;">あなたの怪談を完成させましょう</h2>
-    <div id="storyTemplate">${story}</div>
+    <div id="storyTemplate">${currentStoryTemplate}</div>
   `;
 
   container.style.display = "block";
