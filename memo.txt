@@ -1,5 +1,50 @@
-VM104:10 Uncaught ReferenceError: currentUserId is not defined
-    at debugWebRTCStatus (<anonymous>:10:35)
-    at <anonymous>:89:1
-debugWebRTCStatus	@	VM104:10
-(anonymous)	@	VM104:89
+`currentUserId`が定義されていないエラーですね。変数名が異なっているか、まだ認証が完了していない可能性があります。
+
+## 🔍 **段階的にデバッグしましょう**
+
+まず、以下を**手入力**で確認してください：
+
+```javascript
+console.log("auth:", typeof auth);
+console.log("auth.currentUser:", auth?.currentUser?.uid);
+console.log("roomCode:", typeof roomCode !== 'undefined' ? roomCode : 'undefined');
+```
+
+次に：
+
+```javascript
+console.log("peerConnections:", typeof peerConnections !== 'undefined' ? Object.keys(peerConnections) : 'undefined');
+console.log("localStream:", typeof localStream !== 'undefined' ? localStream : 'undefined');
+```
+
+ビデオ要素の確認：
+
+```javascript
+const videos = document.querySelectorAll('video');
+console.log("ビデオ要素数:", videos.length);
+videos.forEach((v, i) => {
+  console.log(`ビデオ${i+1}:`, {
+    userId: v.getAttribute('data-user-id') || 'ローカル',
+    width: v.videoWidth,
+    height: v.videoHeight,
+    hasStream: !!v.srcObject
+  });
+});
+```
+
+## 🎯 **直接的な確認方法**
+
+コードを実行せずに、以下を教えてください：
+
+1. **画面上に表示されているビデオの数**は何個ですか？
+
+2. **ブラウザのコンソール**（F12 → Console）に、以下のようなメッセージは表示されていますか？
+   - `"📷 ローカルカメラ取得完了"`
+   - `"🎥 映像を受信 from"`
+   - `"📡 Offer 送信完了"`
+
+3. **他のプレイヤーも同じページ**にアクセスして、カメラを起動していますか？
+
+4. **エラーメッセージ**（赤色のテキスト）はコンソールに表示されていますか？
+
+これらの情報で、問題の原因を特定できます！
