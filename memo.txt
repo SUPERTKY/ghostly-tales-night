@@ -1,76 +1,73 @@
-修正箇所を明確にお示しします！
+コードを確認しました。**2つの`ontrack`が重複している**ことが問題です。
 
 ## 🎯 **修正箇所の特定**
 
-**game.js の834行目付近**で、以下のような部分を探してください：
+**745行目付近**にある以下の部分を**削除**してください：
 
 ```javascript
-// DOMに追加
-videoGrid.appendChild(remoteVideo);
-console.log(`📺 ${remoteUID}のビデオ要素をDOMに追加`);
+pc.ontrack = (event) => {
+  const stream = event.streams[0];
+  if (!stream) return;
 
-// 再生を試行
-remoteVideo.play()
-  .then(() => {
-    console.log(`✅ ${remoteUID}のビデオ再生成功`);
-  })
-  .catch(err => {
-    console.warn(`⚠️ ${remoteUID}のビデオ再生失敗:`, err);
-    // 手動再生ボタンを追加
-    // ... ボタン作成のコード
+  const track = stream?.getVideoTracks?.()[0];
+  console.log("🎥 映像を受信 from", fromUID);  // ← ここでエラーが出ている
+  console.log("📺 stream:", stream);
+  console.log("📺 videoTrack state:", track?.readyState);
+  console.log("📺 videoTrack enabled:", track?.enabled);
+  console.log("📺 videoTrack label:", track?.label);
+  console.log("📺 stream track count:", stream.getTracks().length);
+
+  const videoGrid = document.getElementById("videoGrid");
+  videoGrid.style.display = "flex";
+
+  let remoteStream = remoteStreams[fromUID];
+  let remoteVideo = document.querySelector(`video[data-user-id="${fromUID}"]`);
+
+  if (!remoteStream) {
+    remoteStream = new MediaStream();
+    remoteStreams[fromUID] = remoteStream;
+  }
+
+  if (!remoteVideo) {
+    remoteVideo = document.createElement("video");
+    remoteVideo.setAttribute("data-user-id", fromUID);
+    remoteVideo.autoplay = true;
+    remoteVideo.playsInline = true;
+    remoteVideo.muted = true; // autoplay対策
+    remoteVideo.style.width = "200px";
+    remoteVideo.style.height = "150px";
+    remoteVideo.style.margin = "10px";
+    videoGrid.appendChild(remoteVideo);
+  }
+
+  remoteVideo.srcObject = remoteStream;
+
+  stream.getTracks().forEach(track => {
+    remoteStream.addTrack(track);
   });
+
+  remoteVideo.play().catch(err => console.warn("⚠️ play() 失敗:", err));
+};
 ```
 
-## 🔧 **最小限の修正**
+## 📋 **修正手順**
 
-**上記の部分を以下に置き換えてください**：
+1. **745行目付近**の`pc.ontrack = (event) => {`から始まる部分を探す
+2. **対応する`};`まで**（上記のコード全体）を**削除**
+3. **580行目付近の別の`pc.ontrack`は残す**（こちらが修正済みの正しいバージョン）
 
+## ✅ **残すべき正しい`pc.ontrack`**
+
+**580行目付近**にある以下は残してください：
 ```javascript
-// DOMに追加
-videoGrid.appendChild(remoteVideo);
-console.log(`📺 ${remoteUID}のビデオ要素をDOMに追加`);
+pc.ontrack = (event) => {
+  const stream = event.streams[0];
+  if (!stream) return;
 
-// 🔧 修正：安定した再生のため少し待機
-setTimeout(() => {
-  remoteVideo.play()
-    .then(() => {
-      console.log(`✅ ${remoteUID}のビデオ再生成功`);
-    })
-    .catch(err => {
-      console.warn(`⚠️ ${remoteUID}のビデオ再生失敗:`, err);
-      
-      // 手動再生ボタンを追加
-      const playBtn = document.createElement("button");
-      playBtn.textContent = "▶️ 映像を再生";
-      playBtn.style.margin = "10px";
-      playBtn.style.padding = "10px";
-      playBtn.style.backgroundColor = "#00ff00";
-      playBtn.style.border = "none";
-      playBtn.style.borderRadius = "5px";
-      playBtn.style.cursor = "pointer";
-      
-      playBtn.onclick = () => {
-        remoteVideo.play().then(() => {
-          playBtn.remove();
-          console.log("✅ 手動再生成功");
-        });
-      };
-      
-      videoGrid.appendChild(playBtn);
-    });
-}, 200); // 200ms待機
+  // 🔧 修正：remoteUIDを正しく特定
+  const remoteUID = Object.keys(peerConnections).find(uid => peerConnections[uid] === pc) || 'unknown';
+  // ... 正しい処理
+};
 ```
 
-## 📍 **さらに簡単な方法**
-
-**または、834行目の1行だけを変更**：
-
-```javascript
-// 元の行
-remoteVideo.play()
-
-// 以下に変更
-setTimeout(() => remoteVideo.play(), 200)
-```
-
-これだけでも、`AbortError`は解決されるはずです。どちらの方法で修正されますか？
+この修正で、重複する`ontrack`が削除され、エラーが解決されて相手のカメラが表示されるはずです！
