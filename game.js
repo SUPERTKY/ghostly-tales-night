@@ -1,4 +1,5 @@
 
+
 // Firebaseモジュール読み込み
 import {
   initializeApp,
@@ -589,6 +590,7 @@ async function createConnectionWith(remoteUID) {
     remoteVideo.srcObject = event.streams[0];
     remoteVideo.autoplay = true;
     remoteVideo.playsInline = true;
+    remoteVideo.muted = true; // 🔧 再生ブロック回避用
     remoteVideo.style.width = "200px";
     remoteVideo.style.height = "150px"; // 🔧 追加：高さも指定
     remoteVideo.style.margin = "10px";
@@ -655,6 +657,7 @@ pc.ontrack = (event) => {
   remoteVideo.srcObject = stream;
   remoteVideo.autoplay = true;
   remoteVideo.playsInline = true;
+  remoteVideo.muted = true; // 🔧 再生ブロック回避用
   remoteVideo.style.width = "200px";
   remoteVideo.style.height = "150px";
   remoteVideo.style.margin = "10px";
@@ -814,3 +817,4 @@ function showStoryTemplate() {
   container.style.display = "block";
   window.scrollTo({ top: container.offsetTop, behavior: 'smooth' });
 }
+
