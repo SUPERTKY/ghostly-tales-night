@@ -790,49 +790,6 @@ function listenForSignals() {
           pc.addTrack(track, localStream);
         });
 
-pc.ontrack = (event) => {
-  const stream = event.streams[0];
-  if (!stream) return;
-
-  const track = stream?.getVideoTracks?.()[0];
-  console.log("🎥 映像を受信 from", fromUID);
-  console.log("📺 stream:", stream);
-  console.log("📺 videoTrack state:", track?.readyState);
-  console.log("📺 videoTrack enabled:", track?.enabled);
-  console.log("📺 videoTrack label:", track?.label);
-  console.log("📺 stream track count:", stream.getTracks().length);
-
-  const videoGrid = document.getElementById("videoGrid");
-  videoGrid.style.display = "flex";
-
-  let remoteStream = remoteStreams[fromUID];
-  let remoteVideo = document.querySelector(`video[data-user-id="${fromUID}"]`);
-
-  if (!remoteStream) {
-    remoteStream = new MediaStream();
-    remoteStreams[fromUID] = remoteStream;
-  }
-
-  if (!remoteVideo) {
-    remoteVideo = document.createElement("video");
-    remoteVideo.setAttribute("data-user-id", fromUID);
-    remoteVideo.autoplay = true;
-    remoteVideo.playsInline = true;
-    remoteVideo.muted = true; // autoplay対策
-    remoteVideo.style.width = "200px";
-    remoteVideo.style.height = "150px";
-    remoteVideo.style.margin = "10px";
-    videoGrid.appendChild(remoteVideo);
-  }
-
-  remoteVideo.srcObject = remoteStream;
-
-  stream.getTracks().forEach(track => {
-    remoteStream.addTrack(track);
-  });
-
-  remoteVideo.play().catch(err => console.warn("⚠️ play() 失敗:", err));
-};
 
 
         pc.onicecandidate = (event) => {
