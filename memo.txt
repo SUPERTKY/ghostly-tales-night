@@ -1,73 +1,106 @@
-コードを確認しました。**2つの`ontrack`が重複している**ことが問題です。
-
-## 🎯 **修正箇所の特定**
-
-**745行目付近**にある以下の部分を**削除**してください：
-
-```javascript
-pc.ontrack = (event) => {
-  const stream = event.streams[0];
-  if (!stream) return;
-
-  const track = stream?.getVideoTracks?.()[0];
-  console.log("🎥 映像を受信 from", fromUID);  // ← ここでエラーが出ている
-  console.log("📺 stream:", stream);
-  console.log("📺 videoTrack state:", track?.readyState);
-  console.log("📺 videoTrack enabled:", track?.enabled);
-  console.log("📺 videoTrack label:", track?.label);
-  console.log("📺 stream track count:", stream.getTracks().length);
-
-  const videoGrid = document.getElementById("videoGrid");
-  videoGrid.style.display = "flex";
-
-  let remoteStream = remoteStreams[fromUID];
-  let remoteVideo = document.querySelector(`video[data-user-id="${fromUID}"]`);
-
-  if (!remoteStream) {
-    remoteStream = new MediaStream();
-    remoteStreams[fromUID] = remoteStream;
-  }
-
-  if (!remoteVideo) {
-    remoteVideo = document.createElement("video");
-    remoteVideo.setAttribute("data-user-id", fromUID);
-    remoteVideo.autoplay = true;
-    remoteVideo.playsInline = true;
-    remoteVideo.muted = true; // autoplay対策
-    remoteVideo.style.width = "200px";
-    remoteVideo.style.height = "150px";
-    remoteVideo.style.margin = "10px";
-    videoGrid.appendChild(remoteVideo);
-  }
-
-  remoteVideo.srcObject = remoteStream;
-
-  stream.getTracks().forEach(track => {
-    remoteStream.addTrack(track);
-  });
-
-  remoteVideo.play().catch(err => console.warn("⚠️ play() 失敗:", err));
-};
-```
-
-## 📋 **修正手順**
-
-1. **745行目付近**の`pc.ontrack = (event) => {`から始まる部分を探す
-2. **対応する`};`まで**（上記のコード全体）を**削除**
-3. **580行目付近の別の`pc.ontrack`は残す**（こちらが修正済みの正しいバージョン）
-
-## ✅ **残すべき正しい`pc.ontrack`**
-
-**580行目付近**にある以下は残してください：
-```javascript
-pc.ontrack = (event) => {
-  const stream = event.streams[0];
-  if (!stream) return;
-
-  // 🔧 修正：remoteUIDを正しく特定
-  const remoteUID = Object.keys(peerConnections).find(uid => peerConnections[uid] === pc) || 'unknown';
-  // ... 正しい処理
-};
-```
-
-この修正で、重複する`ontrack`が削除され、エラーが解決されて相手のカメラが表示されるはずです！
+BlockingPageContent.js:2  action SET_STORAGE_DATA @ 21:32:14.569
+BlockingPageContent.js:2  prev state {blocking: false}
+BlockingPageContent.js:2  action     {type: 'SET_STORAGE_DATA', urls: {…}, online: true, eula: true, welcome: true, …}
+BlockingPageContent.js:2  next state {blocking: false}
+NotificationContent.js:2   GET chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/notification.json net::ERR_FILE_NOT_FOUND
+t.default @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+a @ NotificationContent.js:2
+value @ NotificationContent.js:2
+c @ NotificationContent.js:2
+setTimeout
+value @ NotificationContent.js:2
+bn @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+Promise.then
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+NotificationContent.js:2   GET chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/internalPages.json net::ERR_FILE_NOT_FOUND
+t.default @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+a @ NotificationContent.js:2
+value @ NotificationContent.js:2
+c @ NotificationContent.js:2
+setTimeout
+value @ NotificationContent.js:2
+bn @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+Promise.then
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+NotificationContent.js:2   GET chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/popup.json net::ERR_FILE_NOT_FOUND
+t.default @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+value @ NotificationContent.js:2
+a @ NotificationContent.js:2
+value @ NotificationContent.js:2
+c @ NotificationContent.js:2
+setTimeout
+value @ NotificationContent.js:2
+bn @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+value @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+Promise.then
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+(anonymous) @ NotificationContent.js:2
+NotificationContent.js:2  action SET_LOCALE @ 21:32:14.581
+NotificationContent.js:2  prev state {notification: false, locale: '', mode: '', os: '', browser: '', …}
+NotificationContent.js:2  action     {type: 'SET_LOCALE', locale: 'ja'}
+NotificationContent.js:2  next state {notification: false, locale: 'ja', mode: '', os: '', browser: '', …}
+NotificationContent.js:2  action SET_STORAGE_DATA @ 21:32:14.587
+NotificationContent.js:2  prev state {notification: false, locale: 'ja', mode: '', os: '', browser: '', …}
+NotificationContent.js:2  action     {type: 'SET_STORAGE_DATA', urls: {…}, online: true, eula: true, welcome: true, …}
+NotificationContent.js:2  next state {notification: false, locale: 'ja', mode: 'Promoter', os: 'win', browser: 'msedge', …}
+game.js:53 🔍 セッション状態を確認中...
+game.js:82 🧹 古いシグナリング情報のみ削除中...
+game.js:87 ✅ 古いシグナリング情報クリーンアップ完了
+game.js:151 👤 プレイヤー情報を更新中...
+game.js:162 📝 既存のプレイヤー情報を保持
+game.js:182 ✅ プレイヤー情報更新完了
+game.js:197 🔌 WebRTC接続をクリーンアップ中...
+game.js:228 📺 ビデオ要素をクリアしました
+game.js:511 📷 ローカルカメラ取得完了
+game.js:546 🛰️ カメラ準備完了を検知、接続開始 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+5game.js:750 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:766 📡 Offer 送信完了 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:806 📨 Offer 受信 from: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:592 🎥 映像を受信 from ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:593 📺 stream: MediaStream {id: '1a2fd6f5-0d45-46f1-997d-185f24c7f68f', active: true, onaddtrack: null, onremovetrack: null, onactive: null, …}
+game.js:594 📺 videoTrack state: undefined
+game.js:595 📺 videoTrack enabled: undefined
+game.js:596 📺 videoTrack label: undefined
+game.js:597 📺 stream track count: 1
+game.js:626 📺 ISP6sDMWS7NbwJtUykQSqhhzp2V2のビデオ要素をDOMに追加
+game.js:634 ▶️ ISP6sDMWS7NbwJtUykQSqhhzp2V2のビデオ再生開始
+5game.js:750 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:825 📨 Answer 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+4game.js:750 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:487 📷 カメラは既に起動しています
