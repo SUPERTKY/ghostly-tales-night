@@ -463,8 +463,7 @@ async function triggerStoryOutput() {
         box.innerHTML = generated;
         container.style.display = "block";
 
-        videoGrid.style.display = "flex";
-        await startCameraForCurrentUser();
+videoGrid.style.display = "flex";
         await startCameraAndConnect();
       });
     }, 1000);
