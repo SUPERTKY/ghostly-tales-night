@@ -1,57 +1,29 @@
-問題を特定しました！🎯
-
-## 🔍 **問題の分析**
-
-- ✅ ビデオ要素は2個正常に作成されている
-- ✅ 相手のビデオ要素も正しく識別されている（緑枠付き）
-- ❌ **相手のビデオのサイズが0x0** = 映像が実際には表示されていない
-
-**原因**: ビデオストリームは受信しているが、ビデオトラックが正しく処理されていない
-
-## 🔧 **修正方法**
-
-**592行目付近**の`track`取得部分を修正してください：
-
-```javascript
-// 現在のコード（問題あり）
-const track = stream?.getVideoTracks?.[0];
-
-// 以下に修正
-const track = stream.getVideoTracks()[0];
-```
-
-**さらに、594-596行目**も以下に修正：
-
-```javascript
-// 現在のコード
-console.log("📺 videoTrack state:", track?.readyState);
-console.log("📺 videoTrack enabled:", track?.enabled);
-console.log("📺 videoTrack label:", track?.label);
-
-// 以下に修正
-console.log("📺 videoTrack state:", track ? track.readyState : 'トラックなし');
-console.log("📺 videoTrack enabled:", track ? track.enabled : 'トラックなし');
-console.log("📺 videoTrack label:", track ? track.label : 'トラックなし');
-```
-
-## 🚀 **または、完全な置き換え版**
-
-**592-597行目を以下で置き換え**：
-
-```javascript
-const tracks = stream.getVideoTracks();
-const track = tracks[0];
-console.log("🎥 映像を受信 from", remoteUID);
-console.log("📺 stream:", stream);
-console.log("📺 ビデオトラック数:", tracks.length);
-if (track) {
-  console.log("📺 videoTrack state:", track.readyState);
-  console.log("📺 videoTrack enabled:", track.enabled);
-  console.log("📺 videoTrack label:", track.label);
-} else {
-  console.log("⚠️ ビデオトラックが見つかりません");
-}
-console.log("📺 stream track count:", stream.getTracks().length);
-```
-
-この修正で、相手のビデオが正しく表示されるはずです！修正後、ページを再読み込みしてテストしてください。
+game.js:53 🔍 セッション状態を確認中...
+game.js:82 🧹 古いシグナリング情報のみ削除中...
+game.js:87 ✅ 古いシグナリング情報クリーンアップ完了
+game.js:151 👤 プレイヤー情報を更新中...
+game.js:162 📝 既存のプレイヤー情報を保持
+game.js:182 ✅ プレイヤー情報更新完了
+game.js:197 🔌 WebRTC接続をクリーンアップ中...
+game.js:228 📺 ビデオ要素をクリアしました
+game.js:511 📷 ローカルカメラ取得完了
+game.js:546 🛰️ カメラ準備完了を検知、接続開始 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+5game.js:750 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:806 📨 Offer 受信 from: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:766 📡 Offer 送信完了 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:806 📨 Offer 受信 from: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:592 🎥 映像を受信 from ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:593 📺 stream: MediaStream {id: '84c6c45c-b91d-473b-b068-d18b801fd26c', active: true, onaddtrack: null, onremovetrack: null, onactive: null, …}
+game.js:594 📺 videoTrack state: live
+game.js:595 📺 videoTrack enabled: true
+game.js:596 📺 videoTrack label: c90b46b0-ac12-4290-92e4-ed8c7dd67929
+game.js:597 📺 stream track count: 1
+game.js:626 📺 ISP6sDMWS7NbwJtUykQSqhhzp2V2のビデオ要素をDOMに追加
+4game.js:797 ❄ ICE candidate 返信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:634 ▶️ ISP6sDMWS7NbwJtUykQSqhhzp2V2のビデオ再生開始
+game.js:797 ❄ ICE candidate 返信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+5game.js:750 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+2game.js:825 📨 Answer 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+4game.js:797 ❄ ICE candidate 返信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+4game.js:750 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:487 📷 カメラは既に起動しています
