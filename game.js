@@ -309,22 +309,10 @@ window.addEventListener("beforeunload", async (event) => {
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "hidden" && !isPageUnloading) {
     console.warn("⚠️ ページが非表示になりました（タブ切り替えなど）");
-    // 🔧 修正：強制的にページ移動はしない
-    // window.location.href = "index.html"; // この行をコメントアウト
-    
-    // 必要に応じて一時停止処理
-    if (timerInterval) {
-      clearInterval(timerInterval);
-      console.log("⏸️ タイマーを一時停止しました");
-    }
+    // 以前はここでタイマーを停止していましたが、
+    // タブを切り替えてもタイマーが止まらないように変更
   } else if (document.visibilityState === "visible") {
     console.log("👁️ ページが再表示されました");
-    
-    // タイマー再開処理
-    if (timerStarted && !timerInterval && remainingSeconds > 0) {
-      startCountdown();
-      console.log("▶️ タイマーを再開しました");
-    }
   }
 });
 
@@ -400,6 +388,9 @@ case 0:
           if (!uid) return;
           await set(ref(db, `rooms/${roomCode}/players/${uid}/ready`), true);
           readyButton.classList.add("disabled");
+          if (!cameraStarted) {
+            await startCameraAndConnect();
+          }
         });
 
         onValue(ref(db, `rooms/${roomCode}/players`), (snapshot) => {
@@ -408,6 +399,11 @@ case 0:
 
           const allReady = Object.values(players).every(p => p.ready);
           if (allReady) {
+            if (timerInterval) {
+              clearInterval(timerInterval);
+              timerInterval = null;
+              timerStarted = false;
+            }
             triggerStoryOutput();
           }
         });
@@ -477,8 +473,14 @@ async function triggerStoryOutput() {
 
 const peerConnections = {};
 let localStream = null;
+let cameraStarted = false;
 
 async function startCameraAndConnect() {
+  if (cameraStarted) {
+    console.log("📷 カメラは既に起動しています");
+    return;
+  }
+  cameraStarted = true;
   try {
     // 🔧 追加：開始前に既存の接続をクリーンアップ
     await cleanupWebRTCConnections();
