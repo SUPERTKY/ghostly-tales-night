@@ -208,6 +208,9 @@ async function cleanupWebRTCConnections() {
     Object.keys(peerConnections).forEach(key => {
       delete peerConnections[key];
     });
+    Object.keys(candidateQueues).forEach(key => {
+      delete candidateQueues[key];
+    });
 
     // ローカルストリームを停止
     if (localStream) {
@@ -475,6 +478,7 @@ async function triggerStoryOutput() {
 
 const peerConnections = {};
 const remoteStreams = {};
+const candidateQueues = {};
 let localStream = null;
 let cameraStarted = false;
 
@@ -515,8 +519,7 @@ async function startCameraAndConnect() {
     for (const [uid, info] of Object.entries(players)) {
       if (uid === myUID) continue;
 
-      // 両者のカメラ準備が整い、かつ自分のUIDが小さい場合のみ Offer を送信
-      if (info.cameraReady && myUID < uid) {
+      if (info.cameraReady && !peerConnections[uid]) {
         console.log("🛰️ 接続開始 to:", uid);
         await createConnectionWith(uid);
       }
@@ -539,7 +542,7 @@ function listenForCameraReadyPlayers() {
     for (const [uid, info] of Object.entries(players)) {
       if (uid === myUID) continue;
 
-      if (info.cameraReady && myUID < uid && !peerConnections[uid]) {
+      if (info.cameraReady && !peerConnections[uid]) {
         console.log("🛰️ カメラ準備完了を検知、接続開始 to:", uid);
         await createConnectionWith(uid);
       }
@@ -559,6 +562,8 @@ async function createConnectionWith(remoteUID) {
   const pc = new RTCPeerConnection({
     iceServers: [{ urls: "stun:stun.l.google.com:19302" }]
   });
+
+  candidateQueues[remoteUID] = [];
 
   // 🔧 追加：接続状態の監視
   pc.onconnectionstatechange = () => {
@@ -650,6 +655,7 @@ function listenForSignals() {
       if (!pc) {
         pc = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
         peerConnections[fromUID] = pc;
+        candidateQueues[fromUID] = candidateQueues[fromUID] || [];
 
         localStream.getTracks().forEach(track => {
           pc.addTrack(track, localStream);
@@ -713,6 +719,16 @@ pc.ontrack = (event) => {
       if (signal.offer && !pc.currentRemoteDescription) {
         console.log("📨 Offer 受信 from:", fromUID);
         await pc.setRemoteDescription(new RTCSessionDescription(signal.offer));
+
+        for (const c of candidateQueues[fromUID]) {
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(c));
+          } catch (e) {
+            console.error("ICE candidate error:", e);
+          }
+        }
+        candidateQueues[fromUID] = [];
+
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
 
@@ -726,6 +742,15 @@ pc.ontrack = (event) => {
       if (signal.answer && pc.signalingState !== "stable") {
         console.log("✅ Answer 受信 from:", fromUID);
         await pc.setRemoteDescription(new RTCSessionDescription(signal.answer));
+
+        for (const c of candidateQueues[fromUID]) {
+          try {
+            await pc.addIceCandidate(new RTCIceCandidate(c));
+          } catch (e) {
+            console.error("ICE candidate error:", e);
+          }
+        }
+        candidateQueues[fromUID] = [];
       }
 
       if (signal.candidates) {
@@ -735,7 +760,7 @@ pc.ontrack = (event) => {
               await pc.addIceCandidate(new RTCIceCandidate(candidate));
               console.log("✅ ICE candidate 受信 from:", fromUID);
             } else {
-              console.warn("⚠ ICE candidate を無視（remoteDescription 未設定）:", candidate);
+              candidateQueues[fromUID].push(candidate);
             }
           } catch (e) {
             console.error("ICE candidate error:", e);
