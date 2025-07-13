@@ -1,61 +1,16 @@
-コードを拝見しました。WebRTCでのビデオ通信で相手のカメラが映らない問題について、重大な順に問題点を整理いたします。
+**PeerConnection作成のタイミングエラー**の修正部分のみを示します：## 🎯 **修正のポイント**
 
-## 🚨 **重大度：高** - WebRTC接続の根本的な問題
-
-### 1. **PeerConnection作成のタイミングエラー**
+**問題**: 
 ```javascript
-// 問題のあるコード（lines 300-310付近）
+// 元のコード
 if (info.cameraReady && myUID < uid && !peerConnections[uid]) {
-  console.log("🛰️ カメラ準備完了を検知、接続開始 to:", uid);
-  await createConnectionWith(uid);
-}
 ```
-**問題**: UIDの大小比較で接続開始を制御していますが、これにより片方向の接続しか確立されない可能性があります。
 
-### 2. **シグナリングデータの競合状態**
-```javascript
-// 問題のあるコード（lines 374-380付近）
-if (signal.offer && !pc.currentRemoteDescription) {
-  // Offer処理
-}
-if (signal.answer && pc.signalingState !== "stable") {
-  // Answer処理
-}
-```
-**問題**: シグナリング処理が同期的でないため、OfferとAnswerが正しい順序で処理されない可能性があります。
+この`myUID < uid`の条件により、UIDが大きいプレイヤーは小さいプレイヤーに接続を開始しません。結果として、一方向の接続しか確立されず、双方向のビデオ通信ができませんでした。
 
-## ⚠️ **重大度：中** - データ同期とタイミング問題
+**解決策**:
+- `myUID < uid`の条件を**完全に削除**
+- すべてのプレイヤーが他の準備完了プレイヤーと接続を試行
+- 接続間隔（300ms）を追加して同時接続による競合を回避
 
-### 3. **カメラ準備状態の確認不足**
-```javascript
-// 問題のあるコード（line 220付近）
-await set(ref(db, `rooms/${roomCode}/players/${auth.currentUser.uid}/cameraReady`), true);
-```
-**問題**: カメラ準備完了の状態設定後、他のプレイヤーがこの状態を検知するまでのタイミングギャップがあります。
-
-### 4. **ICE Candidate処理の問題**
-```javascript
-// 問題のあるコード（lines 390-400付近）
-if (pc.remoteDescription) {
-  await pc.addIceCandidate(new RTCIceCandidate(candidate));
-} else {
-  console.warn("⚠ ICE candidate を無視");
-}
-```
-**問題**: remoteDescriptionが設定される前に届いたICE candidateが破棄されています。
-
-## 📋 **推奨する修正案**## 🔍 **デバッグのための追加確認項目**
-
-1. **ブラウザの開発者ツールでのチェック**:
-   - コンソールログで「📺 受信トラック数」が0でないか確認
-   - WebRTC internals（chrome://webrtc-internals/）で接続状態を確認
-
-2. **Firebase Realtime Databaseの確認**:
-   - `/rooms/{roomCode}/signals/` 以下にOffer/Answerが正しく保存されているか
-   - `/rooms/{roomCode}/players/` でcameraReadyがtrueになっているか
-
-3. **ネットワークの確認**:
-   - ファイアウォールやNATがWebRTC通信をブロックしていないか
-   - 異なるネットワーク環境（モバイルホットスポットなど）でテスト
-
-この修正版では、WebRTC接続の安定性を大幅に改善し、特にICE候補の処理とシグナリングのタイミング問題を解決しています。試してみていかがでしょうか？
+この修正により、すべてのプレイヤー間で双方向のWebRTC接続が確立され、相互にカメラ映像が表示されるようになります。
