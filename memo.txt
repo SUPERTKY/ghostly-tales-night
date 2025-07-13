@@ -1,40 +1,20 @@
-エラーが続いていますね。元のコードの**正確な行番号**を特定して修正しましょう。
 
-## 🔍 **まず現在の状況を確認**
-
-元のコードで、**587行目付近**にある`pc.ontrack`の部分を探してください。おそらく以下のような形になっているはずです：
-
-```javascript
-pc.ontrack = (event) => {
-  const stream = event.streams[0];
-  if (!stream) return;
-
-  const track = stream?.getVideoTracks?.()[0];
-  console.log("🎥 映像を受信 from", fromUID);  // ← ここでエラー
-```
-
-## 🔧 **確実な修正方法**
-
-**587行目の`fromUID`を含む行**を以下に置き換えてください：
-
-```javascript
-// この1行を
-console.log("🎥 映像を受信 from", fromUID);
-
-// 以下に置き換え
-const remoteUID = Object.keys(peerConnections).find(uid => peerConnections[uid] === pc) || 'unknown';
-console.log("🎥 映像を受信 from", remoteUID);
-```
-
-その後、同じ`pc.ontrack`関数内で`fromUID`が使われている**すべての箇所**を`remoteUID`に変更してください。
-
-## 📝 **または、完全置き換え版**
-
-元の`pc.ontrack`関数全体を以下で置き換えることもできます：## 📋 **修正手順**
-
-1. **元のコードで`pc.ontrack = (event) => {`を探す**
-2. **その関数の終わりの`};`までを全て削除**
-3. **上記の修正版コードで置き換える**
-4. **ページを再読み込み**
-
-この修正で`fromUID`エラーが解決され、相手のカメラが緑枠で表示されるはずです！
+game.js:53 🔍 セッション状態を確認中...
+game.js:82 🧹 古いシグナリング情報のみ削除中...
+game.js:87 ✅ 古いシグナリング情報クリーンアップ完了
+game.js:151 👤 プレイヤー情報を更新中...
+game.js:162 📝 既存のプレイヤー情報を保持
+game.js:182 ✅ プレイヤー情報更新完了
+game.js:197 🔌 WebRTC接続をクリーンアップ中...
+game.js:228 📺 ビデオ要素をクリアしました
+game.js:511 📷 ローカルカメラ取得完了
+game.js:546 🛰️ カメラ準備完了を検知、接続開始 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+5game.js:693 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:709 📡 Offer 送信完了 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:792 📨 Offer 受信 from: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:587  Uncaught ReferenceError: fromUID is not defined
+    at pc.ontrack (game.js:587:32)
+5game.js:693 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:811 📨 Answer 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+4game.js:693 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:487 📷 カメラは既に起動しています
