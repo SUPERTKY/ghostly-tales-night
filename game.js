@@ -458,14 +458,14 @@ async function triggerStoryOutput() {
         overlay.removeEventListener("transitionend", handleFadeOut);
         overlay.style.pointerEvents = "none";
 
-        // ✅ 怪談を出力
+        // ✅ 怪談を出力（テンプレートは保持のみ）
         if (!currentStoryTemplate) {
           currentStoryTemplate = generateStoryTemplate();
           console.log("🎃 出力テンプレート:", currentStoryTemplate);
-          const box = document.getElementById("storyTemplate");
-          box.innerHTML = currentStoryTemplate;
         }
-        container.style.display = "block";
+
+        container.innerHTML = "";
+        container.style.display = "none";
 
         videoGrid.style.display = "flex";
         await startCameraAndConnect();
@@ -768,7 +768,12 @@ function generateStoryTemplate() {
 
 function showStoryTemplate() {
   const container = document.getElementById("textboxContainer");
+  const playerList = document.getElementById("playerList");
+  const actionTitle = document.getElementById("actionTitle");
   currentStoryTemplate = generateStoryTemplate();
+
+  if (playerList) playerList.style.display = "none";
+  if (actionTitle) actionTitle.style.display = "none";
 
   container.innerHTML = `
     <h2 style="font-size: 28px; margin-bottom: 20px;">あなたの怪談を完成させましょう</h2>
