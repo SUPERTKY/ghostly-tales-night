@@ -464,7 +464,6 @@ async function triggerStoryOutput() {
         container.style.display = "block";
 
         videoGrid.style.display = "flex";
-        await startCameraForCurrentUser();
         await startCameraAndConnect();
       });
     }, 1000);
