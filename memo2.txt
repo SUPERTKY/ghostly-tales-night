@@ -4,7 +4,10 @@ pc.ontrack = (event) => {
   if (!stream) return;
 
   const track = stream?.getVideoTracks?.()[0];
-  console.log("🎥 映像を受信 from", fromUID);
+  // 🔧 修正：適切な変数名を使用
+  const remoteUID = this.remoteUID || Object.keys(peerConnections).find(uid => peerConnections[uid] === this) || 'unknown';
+  
+  console.log("🎥 映像を受信 from", remoteUID);
   console.log("📺 stream:", stream);
   console.log("📺 videoTrack state:", track?.readyState);
   console.log("📺 videoTrack enabled:", track?.enabled);
@@ -15,15 +18,15 @@ pc.ontrack = (event) => {
   videoGrid.style.display = "flex";
 
   // 🔧 修正：既存のビデオ要素を確実に削除
-  const existingVideo = document.querySelector(`video[data-user-id="${fromUID}"]`);
+  const existingVideo = document.querySelector(`video[data-user-id="${remoteUID}"]`);
   if (existingVideo) {
-    console.log(`🗑️ ${fromUID}の既存ビデオを削除`);
+    console.log(`🗑️ ${remoteUID}の既存ビデオを削除`);
     existingVideo.remove();
   }
 
   // 🔧 修正：新しいビデオ要素を作成（remoteStreamを経由しない）
   const remoteVideo = document.createElement("video");
-  remoteVideo.setAttribute("data-user-id", fromUID);
+  remoteVideo.setAttribute("data-user-id", remoteUID);
   remoteVideo.autoplay = true;
   remoteVideo.playsInline = true;
   remoteVideo.muted = true;
@@ -38,36 +41,36 @@ pc.ontrack = (event) => {
   
   // 🔧 修正：DOMに追加してから再生
   videoGrid.appendChild(remoteVideo);
-  console.log(`📺 ${fromUID}のビデオ要素をDOMに追加`);
+  console.log(`📺 ${remoteUID}のビデオ要素をDOMに追加`);
 
   // 🔧 修正：イベントリスナーを追加してから再生
   remoteVideo.onloadedmetadata = () => {
-    console.log(`📺 ${fromUID}のビデオメタデータ読み込み完了`);
+    console.log(`📺 ${remoteUID}のビデオメタデータ読み込み完了`);
     console.log(`📺 ビデオサイズ: ${remoteVideo.videoWidth}x${remoteVideo.videoHeight}`);
   };
 
   remoteVideo.oncanplay = () => {
-    console.log(`📺 ${fromUID}のビデオ再生準備完了`);
+    console.log(`📺 ${remoteUID}のビデオ再生準備完了`);
   };
 
   remoteVideo.onplay = () => {
-    console.log(`▶️ ${fromUID}のビデオ再生開始`);
+    console.log(`▶️ ${remoteUID}のビデオ再生開始`);
   };
 
   remoteVideo.onerror = (error) => {
-    console.error(`❌ ${fromUID}のビデオエラー:`, error);
+    console.error(`❌ ${remoteUID}のビデオエラー:`, error);
   };
 
   // 🔧 修正：少し遅延してから再生を試行
   setTimeout(() => {
     remoteVideo.play()
       .then(() => {
-        console.log(`✅ ${fromUID}のビデオ再生成功`);
+        console.log(`✅ ${remoteUID}のビデオ再生成功`);
       })
       .catch(err => {
-        console.warn(`⚠️ ${fromUID}のビデオ再生失敗:`, err);
+        console.warn(`⚠️ ${remoteUID}のビデオ再生失敗:`, err);
         // 🔧 修正：再生失敗時は手動再生ボタンを追加
-        addPlayButton(remoteVideo, fromUID);
+        addPlayButton(remoteVideo, remoteUID);
       });
   }, 100);
 };
