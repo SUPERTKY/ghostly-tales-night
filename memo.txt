@@ -1,2 +1,40 @@
-game.js:587  Uncaught ReferenceError: fromUID is not defined
-    at pc.ontrack (game.js:587:32)
+エラーが続いていますね。元のコードの**正確な行番号**を特定して修正しましょう。
+
+## 🔍 **まず現在の状況を確認**
+
+元のコードで、**587行目付近**にある`pc.ontrack`の部分を探してください。おそらく以下のような形になっているはずです：
+
+```javascript
+pc.ontrack = (event) => {
+  const stream = event.streams[0];
+  if (!stream) return;
+
+  const track = stream?.getVideoTracks?.()[0];
+  console.log("🎥 映像を受信 from", fromUID);  // ← ここでエラー
+```
+
+## 🔧 **確実な修正方法**
+
+**587行目の`fromUID`を含む行**を以下に置き換えてください：
+
+```javascript
+// この1行を
+console.log("🎥 映像を受信 from", fromUID);
+
+// 以下に置き換え
+const remoteUID = Object.keys(peerConnections).find(uid => peerConnections[uid] === pc) || 'unknown';
+console.log("🎥 映像を受信 from", remoteUID);
+```
+
+その後、同じ`pc.ontrack`関数内で`fromUID`が使われている**すべての箇所**を`remoteUID`に変更してください。
+
+## 📝 **または、完全置き換え版**
+
+元の`pc.ontrack`関数全体を以下で置き換えることもできます：## 📋 **修正手順**
+
+1. **元のコードで`pc.ontrack = (event) => {`を探す**
+2. **その関数の終わりの`};`までを全て削除**
+3. **上記の修正版コードで置き換える**
+4. **ページを再読み込み**
+
+この修正で`fromUID`エラーが解決され、相手のカメラが緑枠で表示されるはずです！
