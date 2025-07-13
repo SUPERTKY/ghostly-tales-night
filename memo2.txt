@@ -1,93 +1,88 @@
-// 🔧 修正前（問題のあるコード）
-/*
-// 元のコード（lines 300-310付近）
-if (info.cameraReady && myUID < uid && !peerConnections[uid]) {
-  console.log("🛰️ カメラ準備完了を検知、接続開始 to:", uid);
-  await createConnectionWith(uid);
-}
-*/
+// 🔍 デバッグ用：WebRTC接続状態を確認するコード
+// ブラウザのコンソールで実行してください
 
-// 🔧 修正後：双方向接続を可能にする
-async function initializeConnections() {
-  const playersSnap = await get(ref(db, `rooms/${roomCode}/players`));
-  const players = playersSnap.val() || {};
-  const myUID = auth.currentUser.uid;
-
-  console.log(`🔍 接続可能なプレイヤーを確認中...`);
+function debugWebRTCStatus() {
+  console.log("=== WebRTC デバッグ情報 ===");
   
-  for (const [uid, info] of Object.entries(players)) {
-    if (uid === myUID) continue;
+  // 1. 基本状態の確認
+  console.log("🔍 基本状態:");
+  console.log("- currentUserId:", currentUserId);
+  console.log("- roomCode:", roomCode);
+  console.log("- cameraStarted:", cameraStarted);
+  console.log("- localStream:", localStream);
+  
+  // 2. PeerConnection状態
+  console.log("\n🔗 PeerConnection状態:");
+  console.log("- peerConnections:", Object.keys(peerConnections));
+  
+  Object.entries(peerConnections).forEach(([uid, pc]) => {
+    console.log(`  ${uid}:`);
+    console.log(`    - connectionState: ${pc.connectionState}`);
+    console.log(`    - iceConnectionState: ${pc.iceConnectionState}`);
+    console.log(`    - signalingState: ${pc.signalingState}`);
+    console.log(`    - localDescription: ${pc.localDescription ? 'あり' : 'なし'}`);
+    console.log(`    - remoteDescription: ${pc.remoteDescription ? 'あり' : 'なし'}`);
+  });
+  
+  // 3. ビデオ要素の確認
+  console.log("\n📺 ビデオ要素:");
+  const videos = document.querySelectorAll('video');
+  console.log(`- 総ビデオ要素数: ${videos.length}`);
+  
+  videos.forEach((video, index) => {
+    const userId = video.getAttribute('data-user-id');
+    console.log(`  ビデオ${index + 1}:`);
+    console.log(`    - data-user-id: ${userId || '未設定(ローカル)'}`);
+    console.log(`    - srcObject: ${video.srcObject ? 'あり' : 'なし'}`);
+    console.log(`    - videoWidth: ${video.videoWidth}`);
+    console.log(`    - videoHeight: ${video.videoHeight}`);
+    console.log(`    - readyState: ${video.readyState}`);
+    console.log(`    - paused: ${video.paused}`);
     
-    if (info.cameraReady && !peerConnections[uid]) {
-      console.log(`🛰️ ${uid}のカメラ準備完了を確認、接続開始`);
-      // ⭐ 重要：UIDの大小比較を削除し、すべてのプレイヤーと接続を試行
-      await createConnectionWith(uid);
-      // 接続間隔を空けて安定性を向上
-      await new Promise(resolve => setTimeout(resolve, 300));
+    if (video.srcObject) {
+      const tracks = video.srcObject.getTracks();
+      console.log(`    - トラック数: ${tracks.length}`);
+      tracks.forEach((track, i) => {
+        console.log(`      トラック${i + 1}: ${track.kind} - enabled: ${track.enabled} - state: ${track.readyState}`);
+      });
     }
-  }
-}
-
-// 🔧 修正後：listenForCameraReadyPlayers関数も更新
-function listenForCameraReadyPlayers() {
-  const myUID = auth.currentUser.uid;
-  const playersRef = ref(db, `rooms/${roomCode}/players`);
-
-  onValue(playersRef, async (snapshot) => {
-    const players = snapshot.val() || {};
-    for (const [uid, info] of Object.entries(players)) {
-      if (uid === myUID) continue;
-
-      // ⭐ 重要：UIDの大小比較を削除
-      if (info.cameraReady && !peerConnections[uid]) {
-        console.log("🛰️ カメラ準備完了を検知、接続開始 to:", uid);
-        await createConnectionWith(uid);
-        // 同時接続を避けるための間隔
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
+  });
+  
+  // 4. Firebase上のプレイヤー状態確認（非同期）
+  console.log("\n🔥 Firebase プレイヤー状態確認中...");
+  get(ref(db, `rooms/${roomCode}/players`)).then(snapshot => {
+    if (snapshot.exists()) {
+      const players = snapshot.val();
+      console.log("Firebase プレイヤー状態:");
+      Object.entries(players).forEach(([uid, data]) => {
+        console.log(`  ${uid}:`);
+        console.log(`    - name: ${data.name}`);
+        console.log(`    - cameraReady: ${data.cameraReady}`);
+        console.log(`    - ready: ${data.ready}`);
+        console.log(`    - lastSeen: ${data.lastSeen ? new Date(data.lastSeen).toLocaleTimeString() : '未設定'}`);
+      });
+    }
+  });
+  
+  // 5. シグナリングデータの確認
+  console.log("\n📡 シグナリングデータ確認中...");
+  get(ref(db, `rooms/${roomCode}/signals`)).then(snapshot => {
+    if (snapshot.exists()) {
+      const signals = snapshot.val();
+      console.log("シグナリングデータ:");
+      Object.entries(signals).forEach(([fromUID, toMap]) => {
+        Object.entries(toMap).forEach(([toUID, data]) => {
+          console.log(`  ${fromUID} → ${toUID}:`);
+          console.log(`    - offer: ${data.offer ? 'あり' : 'なし'}`);
+          console.log(`    - answer: ${data.answer ? 'あり' : 'なし'}`);
+          console.log(`    - candidates: ${data.candidates ? Object.keys(data.candidates).length + '個' : 'なし'}`);
+        });
+      });
+    } else {
+      console.log("シグナリングデータなし");
     }
   });
 }
 
-// 🔧 startCameraAndConnect関数内の該当部分も修正
-async function startCameraAndConnect() {
-  if (cameraStarted) {
-    console.log("📷 カメラは既に起動しています");
-    return;
-  }
-  cameraStarted = true;
-  
-  try {
-    await cleanupWebRTCConnections();
-    
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-
-    const videoGrid = document.getElementById("videoGrid");
-    videoGrid.style.display = "flex";
-
-    const video = document.createElement("video");
-    video.srcObject = localStream;
-    video.autoplay = true;
-    video.playsInline = true;
-    video.muted = true;
-    video.style.width = "200px";
-    video.style.height = "150px";
-    video.style.margin = "10px";
-    videoGrid.appendChild(video);
-    await video.play().catch(e => console.warn("ローカル再生エラー:", e));
-
-    console.log("📷 ローカルカメラ取得完了");
-
-    await set(ref(db, `rooms/${roomCode}/players/${auth.currentUser.uid}/cameraReady`), true);
-
-    // ⭐ 修正：UIDの大小比較なしで全プレイヤーと接続を試行
-    await initializeConnections();
-
-    listenForSignals();
-    listenForCameraReadyPlayers();
-    
-  } catch (err) {
-    console.error("カメラ取得エラー:", err);
-    alert("カメラの許可が必要です。他のアプリを閉じてください。");
-  }
-}
+// コンソールで実行
+debugWebRTCStatus();
