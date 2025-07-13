@@ -1,50 +1,76 @@
-`currentUserId`が定義されていないエラーですね。変数名が異なっているか、まだ認証が完了していない可能性があります。
-
-## 🔍 **段階的にデバッグしましょう**
-
-まず、以下を**手入力**で確認してください：
-
+ action SET_STORAGE_DATA @ 21:00:27.337
+BlockingPageContent.js:2  prev state Object
+BlockingPageContent.js:2  action     Object
+BlockingPageContent.js:2  next state Object
+chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/notification.json:1   Failed to load resource: net::ERR_FILE_NOT_FOUND
+chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/internalPages.json:1   Failed to load resource: net::ERR_FILE_NOT_FOUND
+chrome-extension://cojkoggfkijfmkhppdpmlgkjoeikckbk/_locales/en/popup.json:1   Failed to load resource: net::ERR_FILE_NOT_FOUND
+NotificationContent.js:2  action SET_LOCALE @ 21:00:27.341
+NotificationContent.js:2  prev state Object
+NotificationContent.js:2  action     Object
+NotificationContent.js:2  next state Object
+NotificationContent.js:2  action SET_STORAGE_DATA @ 21:00:27.343
+NotificationContent.js:2  prev state Object
+NotificationContent.js:2  action     Object
+NotificationContent.js:2  next state Object
+game.js:53 🔍 セッション状態を確認中...
+game.js:82 🧹 古いシグナリング情報のみ削除中...
+game.js:87 ✅ 古いシグナリング情報クリーンアップ完了
+game.js:151 👤 プレイヤー情報を更新中...
+game.js:162 📝 既存のプレイヤー情報を保持
+game.js:182 ✅ プレイヤー情報更新完了
+game.js:197 🔌 WebRTC接続をクリーンアップ中...
+game.js:228 📺 ビデオ要素をクリアしました
+game.js:511 📷 ローカルカメラ取得完了
+game.js:546 🛰️ カメラ準備完了を検知、接続開始 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+5game.js:621 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:720 📨 Offer 受信 from: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:669 🎥 映像を受信 from ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:670 📺 stream: MediaStream
+game.js:671 📺 videoTrack state: live
+game.js:672 📺 videoTrack enabled: true
+game.js:673 📺 videoTrack label: c279bdb1-1c5d-4966-ab11-c4b538349619
+game.js:674 📺 stream track count: 1
+game.js:637 📡 Offer 送信完了 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:720 📨 Offer 受信 from: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:585 🎥 映像を受信 from ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:705  ⚠️ play() 失敗: AbortError: The play() request was interrupted by a new load request.
+(anonymous) @ game.js:705
+5game.js:711 ❄ ICE candidate 返信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+5game.js:621 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+2game.js:739 📨 Answer 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+4game.js:711 ❄ ICE candidate 返信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+4game.js:621 ❄ ICE candidate 送信 to: ISP6sDMWS7NbwJtUykQSqhhzp2V2
+game.js:487 📷 カメラは既に起動しています
+game.js:316  ⚠️ ページが非表示になりました（タブ切り替えなど）
+(anonymous) @ game.js:316
+game.js:320 👁️ ページが再表示されました
+allow pasting
+VM116:1 Uncaught SyntaxError: Unexpected identifier 'pasting'
+game.js:316  ⚠️ ページが非表示になりました（タブ切り替えなど）
+(anonymous) @ game.js:316
+game.js:320 👁️ ページが再表示されました
+game.js:316  ⚠️ ページが非表示になりました（タブ切り替えなど）
+(anonymous) @ game.js:316
+game.js:320 👁️ ページが再表示されました
 ```javascript
 console.log("auth:", typeof auth);
 console.log("auth.currentUser:", auth?.currentUser?.uid);
 console.log("roomCode:", typeof roomCode !== 'undefined' ? roomCode : 'undefined');
 ```
-
-次に：
-
-```javascript
-console.log("peerConnections:", typeof peerConnections !== 'undefined' ? Object.keys(peerConnections) : 'undefined');
-console.log("localStream:", typeof localStream !== 'undefined' ? localStream : 'undefined');
-```
-
-ビデオ要素の確認：
-
-```javascript
-const videos = document.querySelectorAll('video');
-console.log("ビデオ要素数:", videos.length);
-videos.forEach((v, i) => {
-  console.log(`ビデオ${i+1}:`, {
-    userId: v.getAttribute('data-user-id') || 'ローカル',
-    width: v.videoWidth,
-    height: v.videoHeight,
-    hasStream: !!v.srcObject
-  });
-});
-```
-
-## 🎯 **直接的な確認方法**
-
-コードを実行せずに、以下を教えてください：
-
-1. **画面上に表示されているビデオの数**は何個ですか？
-
-2. **ブラウザのコンソール**（F12 → Console）に、以下のようなメッセージは表示されていますか？
-   - `"📷 ローカルカメラ取得完了"`
-   - `"🎥 映像を受信 from"`
-   - `"📡 Offer 送信完了"`
-
-3. **他のプレイヤーも同じページ**にアクセスして、カメラを起動していますか？
-
-4. **エラーメッセージ**（赤色のテキスト）はコンソールに表示されていますか？
-
-これらの情報で、問題の原因を特定できます！
+VM120:1 Uncaught TypeError: "" is not a function
+    at <anonymous>:1:3
+(anonymous) @ VM120:1
+game.js:316  ⚠️ ページが非表示になりました（タブ切り替えなど）
+(anonymous) @ game.js:316
+game.js:320 👁️ ページが再表示されました
+console.log("auth:", typeof auth);
+console.log("auth.currentUser:", auth?.currentUser?.uid);
+console.log("roomCode:", typeof roomCode !== 'undefined' ? roomCode : 'undefined');
+VM124:1 auth: undefined
+VM124:2 Uncaught ReferenceError: auth is not defined
+    at <anonymous>:2:34
+(anonymous) @ VM124:2
+game.js:316  ⚠️ ページが非表示になりました（タブ切り替えなど）
+(anonymous) @ game.js:316
+game.js:320 👁️ ページが再表示されました
