@@ -578,43 +578,115 @@ async function createConnectionWith(remoteUID) {
     pc.addTrack(track, localStream);
   });
 
-  pc.ontrack = (event) => {
-    const stream = event.streams[0];
-    if (!stream) return;
+// 🔧 修正版：ontrack イベントハンドラー（line 585付近を置き換え）
+pc.ontrack = (event) => {
+  const stream = event.streams[0];
+  if (!stream) return;
 
-    console.log("🎥 映像を受信 from", remoteUID);
+  const track = stream?.getVideoTracks?.()[0];
+  console.log("🎥 映像を受信 from", fromUID);
+  console.log("📺 stream:", stream);
+  console.log("📺 videoTrack state:", track?.readyState);
+  console.log("📺 videoTrack enabled:", track?.enabled);
+  console.log("📺 videoTrack label:", track?.label);
+  console.log("📺 stream track count:", stream.getTracks().length);
 
-    const videoGrid = document.getElementById("videoGrid");
-    videoGrid.style.display = "flex";
+  const videoGrid = document.getElementById("videoGrid");
+  videoGrid.style.display = "flex";
 
-    let remoteStream = remoteStreams[remoteUID];
-    let remoteVideo = document.querySelector(`video[data-user-id="${remoteUID}"]`);
+  // 🔧 修正：既存のビデオ要素を確実に削除
+  const existingVideo = document.querySelector(`video[data-user-id="${fromUID}"]`);
+  if (existingVideo) {
+    console.log(`🗑️ ${fromUID}の既存ビデオを削除`);
+    existingVideo.remove();
+  }
 
-    if (!remoteStream) {
-      remoteStream = new MediaStream();
-      remoteStreams[remoteUID] = remoteStream;
-    }
+  // 🔧 修正：新しいビデオ要素を作成（remoteStreamを経由しない）
+  const remoteVideo = document.createElement("video");
+  remoteVideo.setAttribute("data-user-id", fromUID);
+  remoteVideo.autoplay = true;
+  remoteVideo.playsInline = true;
+  remoteVideo.muted = true;
+  remoteVideo.style.width = "200px";
+  remoteVideo.style.height = "150px";
+  remoteVideo.style.margin = "10px";
+  remoteVideo.style.border = "3px solid #00ff00"; // 緑枠でリモートビデオを識別
+  remoteVideo.style.borderRadius = "8px";
 
-    if (!remoteVideo) {
-      remoteVideo = document.createElement("video");
-      remoteVideo.setAttribute("data-user-id", remoteUID);
-      remoteVideo.autoplay = true;
-      remoteVideo.playsInline = true;
-      remoteVideo.muted = true; // autoplay対策
-      remoteVideo.style.width = "200px";
-      remoteVideo.style.height = "150px";
-      remoteVideo.style.margin = "10px";
-      videoGrid.appendChild(remoteVideo);
-    }
+  // 🔧 重要：ストリームを直接設定
+  remoteVideo.srcObject = stream;
+  
+  // 🔧 修正：DOMに追加してから再生
+  videoGrid.appendChild(remoteVideo);
+  console.log(`📺 ${fromUID}のビデオ要素をDOMに追加`);
 
-    remoteVideo.srcObject = remoteStream;
-
-    stream.getTracks().forEach(track => {
-      remoteStream.addTrack(track);
-    });
-
-    remoteVideo.play().catch(err => console.warn("⚠️ play() 失敗:", err));
+  // 🔧 修正：イベントリスナーを追加してから再生
+  remoteVideo.onloadedmetadata = () => {
+    console.log(`📺 ${fromUID}のビデオメタデータ読み込み完了`);
+    console.log(`📺 ビデオサイズ: ${remoteVideo.videoWidth}x${remoteVideo.videoHeight}`);
   };
+
+  remoteVideo.oncanplay = () => {
+    console.log(`📺 ${fromUID}のビデオ再生準備完了`);
+  };
+
+  remoteVideo.onplay = () => {
+    console.log(`▶️ ${fromUID}のビデオ再生開始`);
+  };
+
+  remoteVideo.onerror = (error) => {
+    console.error(`❌ ${fromUID}のビデオエラー:`, error);
+  };
+
+  // 🔧 修正：少し遅延してから再生を試行
+  setTimeout(() => {
+    remoteVideo.play()
+      .then(() => {
+        console.log(`✅ ${fromUID}のビデオ再生成功`);
+      })
+      .catch(err => {
+        console.warn(`⚠️ ${fromUID}のビデオ再生失敗:`, err);
+        // 🔧 修正：再生失敗時は手動再生ボタンを追加
+        addPlayButton(remoteVideo, fromUID);
+      });
+  }, 100);
+};
+
+// 🔧 新規追加：手動再生ボタン関数
+function addPlayButton(videoElement, userId) {
+  // 既存のボタンがあれば削除
+  const existingButton = document.querySelector(`button[data-video-id="${userId}"]`);
+  if (existingButton) {
+    existingButton.remove();
+  }
+
+  const playButton = document.createElement("button");
+  playButton.textContent = `${userId}の映像を再生`;
+  playButton.setAttribute("data-video-id", userId);
+  playButton.style.position = "absolute";
+  playButton.style.zIndex = "1000";
+  playButton.style.backgroundColor = "#00ff00";
+  playButton.style.color = "black";
+  playButton.style.padding = "5px 10px";
+  playButton.style.border = "none";
+  playButton.style.borderRadius = "5px";
+  playButton.style.cursor = "pointer";
+  
+  playButton.onclick = () => {
+    videoElement.play()
+      .then(() => {
+        playButton.remove();
+        console.log(`✅ ${userId}の手動再生成功`);
+      })
+      .catch(err => {
+        console.error(`❌ ${userId}の手動再生失敗:`, err);
+        alert(`${userId}の映像再生に失敗しました: ${err.message}`);
+      });
+  };
+  
+  // ビデオ要素の後に挿入
+  videoElement.parentNode.insertBefore(playButton, videoElement.nextSibling);
+}
 
   pc.onicecandidate = (event) => {
     if (event.candidate) {
