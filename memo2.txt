@@ -1,53 +1,45 @@
-// 🔧 完全な pc.ontrack 置き換え版
-// 元のpc.ontrack = (event) => { から }; までを、以下で置き換えてください
+// 🔧 修正版：ビデオ再生の安定化（834行目付近を置き換え）
 
-pc.ontrack = (event) => {
-  const stream = event.streams[0];
-  if (!stream) return;
-
-  // 🔧 修正：remoteUIDを正しく特定
-  const remoteUID = Object.keys(peerConnections).find(uid => peerConnections[uid] === pc) || 'unknown';
-  
-  const track = stream?.getVideoTracks?.[0];
-  console.log("🎥 映像を受信 from", remoteUID);
-  console.log("📺 stream:", stream);
-  console.log("📺 videoTrack state:", track?.readyState);
-  console.log("📺 videoTrack enabled:", track?.enabled);
-  console.log("📺 videoTrack label:", track?.label);
-  console.log("📺 stream track count:", stream.getTracks().length);
-
-  const videoGrid = document.getElementById("videoGrid");
-  videoGrid.style.display = "flex";
-
-  // 既存のリモートビデオを削除
-  const existingRemoteVideo = document.querySelector(`video[data-user-id="${remoteUID}"]`);
-  if (existingRemoteVideo) {
-    console.log(`🗑️ ${remoteUID}の既存ビデオを削除`);
-    existingRemoteVideo.remove();
+// 既存のリモートビデオを安全に削除
+const existingRemoteVideo = document.querySelector(`video[data-user-id="${remoteUID}"]`);
+if (existingRemoteVideo) {
+  console.log(`🗑️ ${remoteUID}の既存ビデオを削除`);
+  // 再生中の場合は停止してから削除
+  if (!existingRemoteVideo.paused) {
+    existingRemoteVideo.pause();
   }
+  existingRemoteVideo.srcObject = null;
+  existingRemoteVideo.remove();
+}
 
-  // 新しいリモートビデオ要素を作成
+// 少し待ってから新しいビデオ要素を作成
+setTimeout(() => {
   const remoteVideo = document.createElement("video");
   remoteVideo.setAttribute("data-user-id", remoteUID);
-  remoteVideo.autoplay = true;
+  remoteVideo.autoplay = false; // 🔧 重要：autoplayを無効にして手動制御
   remoteVideo.playsInline = true;
   remoteVideo.muted = true;
   remoteVideo.style.width = "200px";
   remoteVideo.style.height = "150px";
   remoteVideo.style.margin = "10px";
-  remoteVideo.style.border = "3px solid #00ff00"; // 緑枠でリモートを識別
+  remoteVideo.style.border = "3px solid #00ff00";
   remoteVideo.style.borderRadius = "8px";
 
-  // ストリームを直接設定
-  remoteVideo.srcObject = stream;
-  
-  // DOMに追加
-  videoGrid.appendChild(remoteVideo);
-  console.log(`📺 ${remoteUID}のビデオ要素をDOMに追加`);
-
-  // 再生イベントリスナー
+  // イベントリスナーを先に設定
   remoteVideo.onloadedmetadata = () => {
     console.log(`📺 ${remoteUID}のメタデータ読み込み完了`);
+    console.log(`📺 ビデオサイズ: ${remoteVideo.videoWidth}x${remoteVideo.videoHeight}`);
+    
+    // メタデータ読み込み後に再生を試行
+    remoteVideo.play()
+      .then(() => {
+        console.log(`✅ ${remoteUID}のビデオ再生成功`);
+      })
+      .catch(err => {
+        console.warn(`⚠️ ${remoteUID}のビデオ再生失敗:`, err);
+        // 手動再生ボタンを表示
+        showPlayButton(remoteVideo, remoteUID);
+      });
   };
 
   remoteVideo.onplay = () => {
@@ -58,38 +50,55 @@ pc.ontrack = (event) => {
     console.error(`❌ ${remoteUID}のビデオエラー:`, error);
   };
 
-  // 再生を試行
-  remoteVideo.play()
-    .then(() => {
-      console.log(`✅ ${remoteUID}のビデオ再生成功`);
-    })
-    .catch(err => {
-      console.warn(`⚠️ ${remoteUID}のビデオ再生失敗:`, err);
-      
-      // 手動再生ボタンを追加
-      const playButton = document.createElement("button");
-      playButton.textContent = `${remoteUID}の映像を再生`;
-      playButton.style.position = "absolute";
-      playButton.style.zIndex = "1000";
-      playButton.style.backgroundColor = "#00ff00";
-      playButton.style.color = "black";
-      playButton.style.padding = "8px 12px";
-      playButton.style.border = "none";
-      playButton.style.borderRadius = "5px";
-      playButton.style.cursor = "pointer";
-      playButton.style.margin = "10px";
-      
-      playButton.onclick = () => {
-        remoteVideo.play()
-          .then(() => {
-            playButton.remove();
-            console.log(`✅ ${remoteUID}の手動再生成功`);
-          })
-          .catch(err2 => {
-            console.error(`❌ ${remoteUID}の手動再生も失敗:`, err2);
-          });
-      };
-      
-      videoGrid.appendChild(playButton);
-    });
-};
+  remoteVideo.oncanplay = () => {
+    console.log(`📺 ${remoteUID}のビデオ再生準備完了`);
+  };
+
+  // ストリームを設定
+  remoteVideo.srcObject = stream;
+  
+  // DOMに追加
+  const videoGrid = document.getElementById("videoGrid");
+  videoGrid.appendChild(remoteVideo);
+  console.log(`📺 ${remoteUID}のビデオ要素をDOMに追加`);
+
+}, 100); // 100ms待機
+
+// 🔧 手動再生ボタン表示関数
+function showPlayButton(videoElement, userId) {
+  // 既存のボタンを削除
+  const existingButton = document.querySelector(`button[data-play-for="${userId}"]`);
+  if (existingButton) {
+    existingButton.remove();
+  }
+
+  const playButton = document.createElement("button");
+  playButton.textContent = `▶️ ${userId}の映像を再生`;
+  playButton.setAttribute("data-play-for", userId);
+  playButton.style.position = "relative";
+  playButton.style.display = "block";
+  playButton.style.margin = "10px auto";
+  playButton.style.padding = "10px 15px";
+  playButton.style.backgroundColor = "#00ff00";
+  playButton.style.color = "#000";
+  playButton.style.border = "none";
+  playButton.style.borderRadius = "5px";
+  playButton.style.cursor = "pointer";
+  playButton.style.fontSize = "14px";
+  playButton.style.fontWeight = "bold";
+  
+  playButton.onclick = () => {
+    videoElement.play()
+      .then(() => {
+        console.log(`✅ ${userId}の手動再生成功`);
+        playButton.remove();
+      })
+      .catch(err => {
+        console.error(`❌ ${userId}の手動再生失敗:`, err);
+        alert(`映像の再生に失敗しました: ${err.message}`);
+      });
+  };
+  
+  // ビデオ要素の後に挿入
+  videoElement.parentNode.insertBefore(playButton, videoElement.nextSibling);
+}
