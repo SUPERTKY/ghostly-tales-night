@@ -1,6 +1,5 @@
 
 
-
 // Firebaseモジュール読み込み
 import {
   initializeApp,
@@ -575,32 +574,41 @@ async function createConnectionWith(remoteUID) {
   });
 
   pc.ontrack = (event) => {
+    const stream = event.streams[0];
+    if (!stream) return;
+
     console.log("🎥 映像を受信 from", remoteUID);
 
-    // MediaStream を準備
+    const videoGrid = document.getElementById("videoGrid");
+    videoGrid.style.display = "flex";
+
     let remoteStream = remoteStreams[remoteUID];
+    let remoteVideo = document.querySelector(`video[data-user-id="${remoteUID}"]`);
+
     if (!remoteStream) {
       remoteStream = new MediaStream();
       remoteStreams[remoteUID] = remoteStream;
+    }
 
-      const videoGrid = document.getElementById("videoGrid");
-      videoGrid.style.display = "flex";
-
-      const remoteVideo = document.createElement("video");
+    if (!remoteVideo) {
+      remoteVideo = document.createElement("video");
       remoteVideo.setAttribute("data-user-id", remoteUID);
       remoteVideo.autoplay = true;
       remoteVideo.playsInline = true;
+      remoteVideo.muted = true; // autoplay対策
       remoteVideo.style.width = "200px";
       remoteVideo.style.height = "150px";
       remoteVideo.style.margin = "10px";
-      remoteVideo.srcObject = remoteStream;
       videoGrid.appendChild(remoteVideo);
-      remoteVideo.play().catch(e => console.warn("再生エラー:", e));
     }
 
-    event.streams[0].getTracks().forEach(track => {
+    remoteVideo.srcObject = remoteStream;
+
+    stream.getTracks().forEach(track => {
       remoteStream.addTrack(track);
     });
+
+    remoteVideo.play().catch(err => console.warn("⚠️ play() 失敗:", err));
   };
 
   pc.onicecandidate = (event) => {
@@ -649,43 +657,46 @@ function listenForSignals() {
 
 pc.ontrack = (event) => {
   const stream = event.streams[0];
-  const track = stream?.getVideoTracks?.()[0];
+  if (!stream) return;
 
+  const track = stream?.getVideoTracks?.()[0];
   console.log("🎥 映像を受信 from", fromUID);
   console.log("📺 stream:", stream);
-  console.log("📺 videoTrack state:", track?.readyState);   // live or ended
-  console.log("📺 videoTrack enabled:", track?.enabled);     // true or false
-  console.log("📺 videoTrack label:", track?.label);         // カメラ名など
+  console.log("📺 videoTrack state:", track?.readyState);
+  console.log("📺 videoTrack enabled:", track?.enabled);
+  console.log("📺 videoTrack label:", track?.label);
   console.log("📺 stream track count:", stream.getTracks().length);
 
+  const videoGrid = document.getElementById("videoGrid");
+  videoGrid.style.display = "flex";
+
   let remoteStream = remoteStreams[fromUID];
-  let remoteVideo = document.querySelector(`[data-user-id="${fromUID}"]`);
+  let remoteVideo = document.querySelector(`video[data-user-id="${fromUID}"]`);
 
   if (!remoteStream) {
     remoteStream = new MediaStream();
     remoteStreams[fromUID] = remoteStream;
-
-    if (!remoteVideo) {
-      remoteVideo = document.createElement("video");
-      remoteVideo.setAttribute("data-user-id", fromUID);
-      remoteVideo.autoplay = true;
-      remoteVideo.playsInline = true;
-      remoteVideo.style.width = "200px";
-      remoteVideo.style.height = "150px";
-      remoteVideo.style.margin = "10px";
-      document.getElementById("videoGrid").appendChild(remoteVideo);
-    }
-
-    remoteVideo.srcObject = remoteStream;
-    remoteVideo.play().catch(e => console.warn("再生エラー:", e));
-  } else if (remoteVideo && !remoteVideo.srcObject) {
-    remoteVideo.srcObject = remoteStream;
-    remoteVideo.play().catch(e => console.warn("再生エラー:", e));
   }
+
+  if (!remoteVideo) {
+    remoteVideo = document.createElement("video");
+    remoteVideo.setAttribute("data-user-id", fromUID);
+    remoteVideo.autoplay = true;
+    remoteVideo.playsInline = true;
+    remoteVideo.muted = true; // autoplay対策
+    remoteVideo.style.width = "200px";
+    remoteVideo.style.height = "150px";
+    remoteVideo.style.margin = "10px";
+    videoGrid.appendChild(remoteVideo);
+  }
+
+  remoteVideo.srcObject = remoteStream;
 
   stream.getTracks().forEach(track => {
     remoteStream.addTrack(track);
   });
+
+  remoteVideo.play().catch(err => console.warn("⚠️ play() 失敗:", err));
 };
 
 
@@ -827,4 +838,3 @@ function showStoryTemplate() {
   container.style.display = "block";
   window.scrollTo({ top: container.offsetTop, behavior: 'smooth' });
 }
-
