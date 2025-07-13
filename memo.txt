@@ -1,3 +1,57 @@
-ビデオ要素数: 2
-VM106:3 ビデオ1: {userId: 'ローカル', border: '', width: 640, height: 480}
-VM106:3 ビデオ2: {userId: 'ISP6sDMWS7NbwJtUykQSqhhzp2V2', border: '3px solid rgb(0, 255, 0)', width: 0, height: 0}
+問題を特定しました！🎯
+
+## 🔍 **問題の分析**
+
+- ✅ ビデオ要素は2個正常に作成されている
+- ✅ 相手のビデオ要素も正しく識別されている（緑枠付き）
+- ❌ **相手のビデオのサイズが0x0** = 映像が実際には表示されていない
+
+**原因**: ビデオストリームは受信しているが、ビデオトラックが正しく処理されていない
+
+## 🔧 **修正方法**
+
+**592行目付近**の`track`取得部分を修正してください：
+
+```javascript
+// 現在のコード（問題あり）
+const track = stream?.getVideoTracks?.[0];
+
+// 以下に修正
+const track = stream.getVideoTracks()[0];
+```
+
+**さらに、594-596行目**も以下に修正：
+
+```javascript
+// 現在のコード
+console.log("📺 videoTrack state:", track?.readyState);
+console.log("📺 videoTrack enabled:", track?.enabled);
+console.log("📺 videoTrack label:", track?.label);
+
+// 以下に修正
+console.log("📺 videoTrack state:", track ? track.readyState : 'トラックなし');
+console.log("📺 videoTrack enabled:", track ? track.enabled : 'トラックなし');
+console.log("📺 videoTrack label:", track ? track.label : 'トラックなし');
+```
+
+## 🚀 **または、完全な置き換え版**
+
+**592-597行目を以下で置き換え**：
+
+```javascript
+const tracks = stream.getVideoTracks();
+const track = tracks[0];
+console.log("🎥 映像を受信 from", remoteUID);
+console.log("📺 stream:", stream);
+console.log("📺 ビデオトラック数:", tracks.length);
+if (track) {
+  console.log("📺 videoTrack state:", track.readyState);
+  console.log("📺 videoTrack enabled:", track.enabled);
+  console.log("📺 videoTrack label:", track.label);
+} else {
+  console.log("⚠️ ビデオトラックが見つかりません");
+}
+console.log("📺 stream track count:", stream.getTracks().length);
+```
+
+この修正で、相手のビデオが正しく表示されるはずです！修正後、ページを再読み込みしてテストしてください。
